@@ -3,811 +3,1057 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NP Reflect — Clickable Prototype</title>
+<title>NP Reflect — Clickable Prototype v5</title>
 <style>
-  :root {
-    --accent: #003C77;
-    --gold: #FFA626;
-    --gold-text: #8A5A00;
-    --gold-icon: #C9861A;
-    --ink: #2B2A25;
-    --muted: #6B6659;
-    --faint: #8A8578;
-    --border: #ECE7DA;
-    --bg-page: #E9E5DA;
-    --bg-app: #FAF7F1;
-    --card-alt: #F0ECE1;
-    --dot-outline: #D8D3C6;
-    --green: #2E7D32;
-    --green-bg: #E8F3E8;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    color: var(--ink);
-    background: var(--bg-page);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  h1, h2, h3 { font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif; }
-  a { color: inherit; text-decoration: none; cursor: pointer; }
-  textarea, input, button { font-family: inherit; }
-  button { cursor: pointer; }
+  :root{--accent:#003C77;--gold:#FFA626;--gold-text:#8A5A00;--gold-icon:#C9861A;--orange:#E8772E;--green:#2E7D32;
+    --ink:#2B2A25;--muted:#6B6659;--faint:#8A8578;--border:#ECE7DA;--bg-page:#E9E5DA;--bg-app:#FAF7F1;--card-alt:#F0ECE1;--dot:#D8D3C6;}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg-page);min-height:100vh;display:flex;flex-direction:column;align-items:center}
+  h1,h2,h3{font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif}
+  a{color:inherit;text-decoration:none;cursor:pointer}
+  textarea,input,button{font-family:inherit}
+  button{cursor:pointer}
 
-  /* ---- Prototype chrome ---- */
-  .toolbar {
-    width: 100%;
-    box-sizing: border-box;
-    padding: 14px 24px;
-    background: #FFFFFF;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 14px;
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    flex-wrap: wrap;
-  }
-  .toolbar .label { font-size: 13px; color: var(--faint); }
-  .toolbar .current { font-size: 14px; font-weight: 700; color: var(--accent); min-width: 150px; }
-  .toolbar button, .toolbar .tbtn {
-    font: inherit;
-    font-size: 13px;
-    font-weight: 600;
-    padding: 7px 14px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background: var(--bg-app);
-    color: var(--ink);
-  }
-  .toolbar .tbtn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .toolbar button:hover { background: var(--card-alt); }
-  .toolbar .divider { width: 1px; height: 22px; background: var(--border); }
+  /* prototype chrome */
+  .toolbar{width:100%;padding:12px 24px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:center;gap:12px;position:sticky;top:0;z-index:20;flex-wrap:wrap}
+  .toolbar .label{font-size:13px;color:var(--faint)}
+  .toolbar .current{font-size:14px;font-weight:700;color:var(--accent);min-width:170px}
+  .tbtn{font:inherit;font-size:13px;font-weight:600;padding:7px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg-app);color:var(--ink)}
+  .tbtn:hover{background:var(--card-alt)}
+  .tbtn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .tbtn.warn{background:#FFF4E0;border-color:var(--gold);color:var(--gold-text)}
+  .divider{width:1px;height:22px;background:var(--border)}
+  .stage{padding:32px 20px 50px;display:flex;justify-content:center;width:100%}
+  .phone{width:390px;height:844px;background:#000;border-radius:44px;padding:10px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+  .phone-screen{width:100%;height:100%;border-radius:34px;overflow:hidden;background:var(--bg-app);position:relative}
+  .screen{display:none;width:100%;height:100%;overflow-y:auto;scrollbar-width:none}
+  .screen::-webkit-scrollbar{display:none}
+  .screen.active{display:block;animation:fade .18s ease}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .phone-screen.offline .screen{margin-top:28px;height:calc(100% - 28px)}
+  .banner{display:none;position:absolute;top:0;left:0;right:0;height:28px;background:#FFF4E0;color:var(--gold-text);font-size:12px;font-weight:600;align-items:center;justify-content:center;gap:6px;z-index:40;border-bottom:1px solid var(--gold)}
+  .phone-screen.offline .banner{display:flex}
 
-  .stage { padding: 40px 20px 60px; display: flex; justify-content: center; width: 100%; }
-  .phone { width: 390px; height: 844px; background: #000; border-radius: 44px; padding: 10px; box-shadow: 0 20px 50px rgba(0,0,0,0.25); }
-  .phone-screen { width: 100%; height: 100%; border-radius: 34px; overflow: hidden; background: var(--bg-app); position: relative; }
-  .screen { display: none; width: 100%; height: 100%; overflow-y: auto; }
-  .screen.active { display: block; animation: fadein 0.18s ease; }
-  @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+  .col{min-height:100%;display:flex;flex-direction:column;padding:22px 24px 24px}
+  .grow{flex-grow:1}
+  .btn-primary{display:flex;align-items:center;justify-content:center;width:100%;height:52px;background:var(--accent);color:#fff;border-radius:14px;font-size:16px;font-weight:600;border:none}
+  .btn-primary.disabled{background:#B9C3CF}
+  .btn-outline{display:flex;align-items:center;justify-content:center;width:100%;height:48px;border:1.5px solid var(--accent);color:var(--accent);border-radius:14px;font-size:15px;font-weight:600;background:none}
+  .link{font-size:13px;color:var(--faint);text-decoration:underline;text-align:center;display:block}
+  .card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:16px}
+  .small{font-size:12px;color:var(--faint)}
+  .topbar{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+  .topbar h1{margin:0;font-size:19px}
+  .backbtn{width:32px;height:32px;display:flex;align-items:center;justify-content:center}
 
-  .btn-primary { display: flex; align-items: center; justify-content: center; width: 100%; height: 52px; background: var(--accent); color: #fff; border-radius: 14px; font-size: 16px; font-weight: 600; border: none; }
-  .btn-outline { display: flex; align-items: center; justify-content: center; width: 100%; height: 50px; border: 1.5px solid var(--accent); color: var(--accent); border-radius: 14px; font-size: 15px; font-weight: 600; background: none; }
+  .seg{display:flex;background:var(--card-alt);border-radius:12px;padding:3px}
+  .seg button{flex:1;padding:8px 0;border-radius:10px;background:none;border:none;font-size:13px;color:var(--faint);font-weight:600}
+  .seg button.active{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
 
-  /* ---- mode segmented controls (JS-driven, not CSS-only) ---- */
-  .seg { display: flex; background: var(--card-alt); border-radius: 12px; padding: 3px; }
-  .seg button { flex: 1; text-align: center; padding: 8px 0; border-radius: 10px; background: none; border: none; font-size: 13px; color: var(--faint); font-weight: 600; }
-  .seg button.active { background: #FFFFFF; color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+  .sw{position:relative;width:44px;height:26px;flex-shrink:0;display:inline-block}
+  .sw input{opacity:0;width:0;height:0}
+  .sw span{position:absolute;inset:0;background:var(--dot);border-radius:26px;transition:.2s}
+  .sw span:before{content:"";position:absolute;height:20px;width:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+  .sw input:checked+span{background:var(--accent)}
+  .sw input:checked+span:before{transform:translateX(18px)}
 
-  /* ---- toast ---- */
-  .toast {
-    position: absolute; left: 50%; bottom: 90px; transform: translateX(-50%) translateY(10px);
-    background: var(--ink); color: #fff; padding: 10px 18px; border-radius: 12px; font-size: 13px;
-    font-weight: 600; opacity: 0; pointer-events: none; transition: all 0.25s ease; z-index: 50;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast{position:absolute;left:50%;bottom:84px;transform:translateX(-50%) translateY(10px);background:var(--ink);color:#fff;padding:10px 16px;border-radius:12px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:all .25s ease;z-index:60;max-width:320px;text-align:center}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-  /* ---- Data view (desktop-style, outside phone frame) ---- */
-  .dataview { display: none; width: 100%; max-width: 980px; padding: 0 20px 60px; }
-  .dataview.active { display: block; }
-  .dv-card { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 22px; margin-bottom: 18px; }
-  .dv-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .dv-table th { text-align: left; background: var(--accent); color: #fff; padding: 9px 10px; font-size: 12px; }
-  .dv-table td { padding: 9px 10px; border-bottom: 1px solid var(--border); }
-  .dv-table tr:hover td { background: var(--bg-app); }
-  .badge { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; }
-  .badge.personal { background: rgba(0,60,119,0.10); color: var(--accent); }
-  .badge.school { background: rgba(255,166,38,0.22); color: var(--gold-text); }
+  .sheet{display:none;position:absolute;left:0;right:0;bottom:0;top:90px;background:#fff;border-radius:24px 24px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.2);z-index:50;padding:20px 22px;overflow-y:auto;scrollbar-width:none}
+  .sheet.open{display:block}
+  .scrim{display:none;position:absolute;inset:0;background:rgba(0,0,0,.35);z-index:45}
+  .scrim.open{display:block}
 
-  /* ---- multimodal panels ---- */
-  .mm-panel { display: none; }
-  .mm-panel.active { display: block; }
-  .record-circle {
-    width: 84px; height: 84px; border-radius: 50%; background: var(--accent); color: #fff;
-    display: flex; align-items: center; justify-content: center; margin: 18px auto; border: none;
-  }
-  .record-circle.recording { background: #C0392B; animation: pulse 1.2s infinite; }
-  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(192,57,43,0.4); } 70% { box-shadow: 0 0 0 14px rgba(192,57,43,0); } 100% { box-shadow: 0 0 0 0 rgba(192,57,43,0); } }
-  .dropzone {
-    border: 2px dashed var(--dot-outline); border-radius: 14px; padding: 30px 16px; text-align: center;
-    color: var(--faint); font-size: 13px; cursor: pointer; background: var(--card-alt);
-  }
-  .dropzone img { max-width: 100%; max-height: 160px; border-radius: 10px; margin-top: 10px; }
+  .mm-panel{display:none}.mm-panel.active{display:block}
+  .record-circle{width:84px;height:84px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;margin:14px auto;border:none}
+  .record-circle.recording{background:#C0392B;animation:pulse 1.2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(192,57,43,.4)}70%{box-shadow:0 0 0 14px rgba(192,57,43,0)}100%{box-shadow:0 0 0 0 rgba(192,57,43,0)}}
+  .dropzone{border:2px dashed var(--dot);border-radius:14px;padding:26px 16px;text-align:center;color:var(--faint);font-size:13px;cursor:pointer;background:var(--card-alt);display:block}
+  .dropzone img{max-width:100%;max-height:130px;border-radius:10px}
+  textarea.ta{width:100%;border:1px solid var(--border);border-radius:12px;padding:12px;font-size:14px;background:#fff;resize:none}
+
+  .chips{display:flex;gap:6px;margin-top:8px}
+  .chip{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--dot);background:#fff;font-size:13px;font-weight:600;color:var(--muted);padding:0}
+  .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .dots{display:flex;gap:6px;justify-content:center}
+  .dots i{width:7px;height:7px;border-radius:50%;border:1.5px solid var(--dot);display:block}
+  .dots i.on{background:var(--accent);border-color:var(--accent)}
+  .tag-draft{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;background:#FFF4E0;color:var(--gold-text);border:1px solid var(--gold);border-radius:6px;padding:1px 6px;margin-left:6px}
+  .rung{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)}
+  .rung:last-child{border-bottom:none}
+  .rung .badge{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;font-weight:700}
+
+  /* data view */
+  .dataview{display:none;width:100%;max-width:980px;padding:0 20px 60px}
+  .dataview.active{display:block}
+  .dv-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:22px;margin-bottom:18px}
+  .dv-table{width:100%;border-collapse:collapse;font-size:13px}
+  .dv-table th{text-align:left;background:var(--accent);color:#fff;padding:9px 10px;font-size:12px}
+  .dv-table td{padding:9px 10px;border-bottom:1px solid var(--border)}
+  .dv-table tr:hover td{background:var(--bg-app)}
+  .sv-nav{position:absolute;left:0;right:0;bottom:0;height:64px;background:#fff;border-top:1px solid var(--border);display:flex;z-index:30;padding-bottom:6px}
+  .sv-nav button{flex:1;border:none;background:none;font-size:11px;font-weight:600;color:var(--faint);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+  .sv-nav button span{font-size:18px;line-height:1}
+  .sv-nav button.on{color:var(--accent)}
+  #svScreen{height:calc(100% - 64px)}
 </style>
 </head>
 <body>
 
 <div class="toolbar">
-  <span class="label">NP Reflect — prototype</span>
-  <span class="current" id="currentLabel">1 · Onboarding</span>
+  <span class="label">NP Reflect — prototype v5</span>
+  <span class="current" id="currentLabel">1 · Welcome</span>
   <div class="divider"></div>
-  <span class="tbtn active" id="viewStudentBtn" onclick="toggleView('student')">📱 Student App</span>
-  <span class="tbtn" id="viewDataBtn" onclick="toggleView('data')">🗂 Sandbox / Advisor Data View</span>
+  <span class="tbtn active" id="viewStudentBtn" onclick="toggleView('student')">📱 Student app</span>
+  <span class="tbtn" id="viewAdvisorBtn" onclick="toggleView('advisor')">👩‍🏫 CCA advisor</span>
+  <span class="tbtn" id="viewSandboxBtn" onclick="toggleView('sandbox')">🗂 Sandbox team</span>
   <div class="divider"></div>
-  <button onclick="showScreen('onboarding')">↺ Restart</button>
+  <button class="tbtn" id="offlineBtn" onclick="toggleOffline()">● Online</button>
+  <button class="tbtn" onclick="restart()">↺ Restart</button>
 </div>
 
 <div class="stage" id="studentStage">
-<div class="phone"><div class="phone-screen">
+<div class="phone"><div class="phone-screen" id="phoneScreen">
+  <div class="banner" id="banner">○ You're offline — entries will send when you're back online</div>
 
-  <!-- ============ 1. ONBOARDING ============ -->
-  <section class="screen active" id="onboarding" data-label="1 · Onboarding">
-    <div style="width: 100%; height: 100%; box-sizing: border-box; padding: 40px 28px 32px; display: flex; flex-direction: column;">
-      <div style="font-size: 11px; letter-spacing: 1.5px; color: var(--faint); text-transform: uppercase;">Sandbox · Ngee Ann Poly</div>
-      <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px;">
-        <svg width="76" height="76" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M2 20.5C4 19.7 6 19.7 8 20.5C10 19.7 14 19.7 16 20.5C18 19.7 20 19.7 22 20.5" stroke="var(--accent)" stroke-width="1.1" opacity="0.55"/>
-          <path d="M4 20L4 15L6 15L6 12L8 12L8 15L10 15L10 10L14 10L14 15L16 15L16 12L18 12L18 15L20 15L20 20Z" stroke="var(--accent)" stroke-width="1.6" stroke-linejoin="round"/>
-          <path d="M12 10V5M12 5L16 6.5L12 8" stroke="var(--accent)" stroke-width="1.6" stroke-linejoin="round"/>
-          <path d="M7 12V9.2M7 9.2L9.2 10.2L7 11.2" stroke="var(--accent)" stroke-width="1.4" stroke-linejoin="round"/>
-          <path d="M17 12V9.2M17 9.2L19.2 10.2L17 11.2" stroke="var(--accent)" stroke-width="1.4" stroke-linejoin="round"/>
-        </svg>
-        <div style="text-align: center; display: flex; flex-direction: column; gap: 14px;">
-          <h1 style="margin: 0; font-size: 27px; font-weight: 700; line-height: 1.3;">A space to reflect,<br/>in your own words</h1>
-          <p style="margin: 0; font-size: 15px; line-height: 1.6; color: var(--muted); max-width: 280px;">Track what you're learning from real experiences — internships, projects, setbacks — in whatever way feels natural.</p>
+  <!-- 1 WELCOME -->
+  <section class="screen active" id="welcome" data-label="1 · Welcome">
+    <div class="col" style="padding-top:40px;padding-bottom:30px">
+      <div class="small" style="letter-spacing:1.5px;text-transform:uppercase">Sandbox · Ngee Ann Poly</div>
+      <div class="grow" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;text-align:center">
+        <span class="castle" data-level="3" data-size="84"></span>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <h1 style="margin:0;font-size:27px;line-height:1.3">A space to reflect,<br>in your own words</h1>
+          <p style="margin:0 auto;font-size:15px;line-height:1.6;color:var(--muted);max-width:290px">Take a few minutes every couple of weeks to notice what you're learning — and watch your soft skills grow.</p>
         </div>
       </div>
-      <div style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
-        <div style="display: flex; gap: 6px;" aria-hidden="true">
-          <span style="width: 7px; height: 7px; border-radius: 50%; background: var(--accent);"></span>
-          <span style="width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid var(--dot-outline);"></span>
-          <span style="width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid var(--dot-outline);"></span>
-        </div>
-        <a class="btn-primary" onclick="showScreen('consent')">Get started</a>
-        <a onclick="showScreen('home')" style="font-size: 13px; color: var(--faint); text-decoration: underline;">I already have an account</a>
+      <div style="display:flex;flex-direction:column;gap:18px">
+        <a class="btn-primary" onclick="startTour()">Walk me through</a>
+        <a class="link" onclick="go('home')">I already have an account</a>
       </div>
     </div>
   </section>
 
-  <!-- ============ 2. CONSENT ============ -->
-  <section class="screen" id="consent" data-label="2 · Privacy & consent">
-    <div style="width: 100%; height: 100%; box-sizing: border-box; padding: 24px 28px 32px; display: flex; flex-direction: column;">
-      <a onclick="showScreen('onboarding')" aria-label="Back" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6L9 12L15 18" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </a>
-      <h1 style="margin: 20px 0 8px; font-size: 24px; font-weight: 700;">Your reflections are yours</h1>
-      <p style="margin: 0 0 24px; font-size: 14px; line-height: 1.6; color: var(--muted);">Here's exactly who can see what, before you start.</p>
-      <div style="display: flex; flex-direction: column; gap: 14px;">
-        <div style="background: #FFFFFF; border-radius: 16px; padding: 18px; border: 1px solid var(--border); display: flex; gap: 14px;">
-          <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(0,60,119,0.10); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 20L4 15L6 15L6 12L8 12L8 15L10 15L10 10L14 10L14 15L16 15L16 12L18 12L18 15L20 15L20 20Z" stroke="var(--accent)" stroke-width="1.7" stroke-linejoin="round"/><path d="M2 21Q4 20 6 21T10 21T14 21T18 21T22 21" stroke="var(--accent)" stroke-width="1.2" fill="none"/></svg>
-          </div>
-          <div>
-            <div style="font-size: 15px; font-weight: 600; margin-bottom: 4px;">Personal mode</div>
-            <div style="font-size: 13px; line-height: 1.5; color: var(--muted);">Visible to your CCA advisor and the Sandbox team, who use it to understand what's actually helping students grow.</div>
-          </div>
-        </div>
-        <div style="background: #FFFFFF; border-radius: 16px; padding: 18px; border: 1px solid var(--border); display: flex; gap: 14px;">
-          <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(255,166,38,0.20); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 20L4 15L6 15L6 12L8 12L8 15L10 15L10 10L14 10L14 15L16 15L16 12L18 12L18 15L20 15L20 20Z" stroke="var(--gold-text)" stroke-width="1.7" stroke-linejoin="round"/><path d="M12 10V5.2M12 5.2L16 6.7L12 8.2" stroke="var(--gold-text)" stroke-width="1.5" stroke-linejoin="round"/></svg>
-          </div>
-          <div>
-            <div style="font-size: 15px; font-weight: 600; margin-bottom: 4px;">School mode</div>
-            <div style="font-size: 13px; line-height: 1.5; color: var(--muted);">Entries tied to a prompt your lecturer or advisor sets, so they can follow up with you directly.</div>
-          </div>
-        </div>
+  <!-- 2 TOUR (3 slides) -->
+  <section class="screen" id="tour" data-label="2 · How it works (3 steps)">
+    <div class="col" style="padding-top:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span class="small" id="tourCount">1 of 3</span>
+        <a class="small" style="text-decoration:underline" onclick="go('consent')">Skip</a>
       </div>
-      <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center;">
-        <svg width="132" height="66" viewBox="0 0 110 55" fill="none" aria-hidden="true" style="opacity: 0.55;"><path d="M13 22Q32 0 51 22" stroke="#2B2A25" stroke-width="1.7" stroke-linecap="round"/><ellipse cx="32" cy="22" rx="19" ry="5" stroke="#2B2A25" stroke-width="1.7"/><path d="M15 23L23 49" stroke="#2B2A25" stroke-width="1.7" stroke-linecap="round"/><path d="M49 23L41 49" stroke="#2B2A25" stroke-width="1.7" stroke-linecap="round"/><path d="M23 49Q32 53 41 49" stroke="#2B2A25" stroke-width="1.7" stroke-linecap="round"/><path d="M18 33Q32 36 46 33" stroke="#2B2A25" stroke-width="1.2" opacity="0.55"/><path d="M77 2L93 2" stroke="#2B2A25" stroke-width="1.8" stroke-linecap="round"/><path d="M85 2V33" stroke="#2B2A25" stroke-width="1.8" stroke-linecap="round"/><circle cx="85" cy="39" r="11" stroke="#2B2A25" stroke-width="1.8"/><circle cx="81" cy="41" r="1.2" fill="#2B2A25"/><circle cx="89" cy="41" r="1.2" fill="#2B2A25"/></svg>
+
+      <div class="tslide" id="ts0">
+        <h1 style="margin:6px 0 4px;font-size:25px;text-align:center">See how you grow</h1>
+        <p style="margin:0 0 4px;font-size:14px;line-height:1.55;color:var(--muted);text-align:center">Rate 8 soft skills now and again later. Your web shows how far you've come.</p>
+        <div id="tourChart" style="display:flex;justify-content:center"></div>
+        <div style="display:flex;justify-content:center;gap:18px;font-size:12px;color:var(--muted);margin:2px 0 10px;flex-wrap:wrap">
+          <span><span style="display:inline-block;width:24px;border-top:3px dashed var(--orange);vertical-align:middle;margin-right:6px"></span>When you started</span>
+          <span><span style="display:inline-block;width:24px;border-top:3px solid var(--green);vertical-align:middle;margin-right:6px"></span>Where you are now</span>
+        </div>
+        <p class="small" style="text-align:center;margin:0">Example only. NP also learns which experiences help students grow.</p>
       </div>
-      <label style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 18px; cursor: pointer;">
-        <input type="checkbox" style="margin-top: 2px; width: 18px; height: 18px; accent-color: var(--accent);"/>
-        <span style="font-size: 13px; line-height: 1.5; color: #4A4638;">I understand how my reflections are used</span>
+
+      <div class="tslide" id="ts1" style="display:none">
+        <h1 style="margin:6px 0 6px;font-size:25px;text-align:center">Step 1: Reflect for 3 minutes</h1>
+        <p style="margin:0 0 18px;font-size:14px;line-height:1.55;color:var(--muted);text-align:center">About every two weeks, pick one moment that stood out. Say what happened and what you learned.</p>
+        <div style="display:flex;gap:10px;margin-bottom:16px">
+          <div class="card" style="flex:1;text-align:center;padding:16px 6px"><span class="ico" data-ico="text" data-size="26"></span><div style="font-size:13px;font-weight:600;margin-top:6px">Type it</div></div>
+          <div class="card" style="flex:1;text-align:center;padding:16px 6px"><span class="ico" data-ico="mic" data-size="26"></span><div style="font-size:13px;font-weight:600;margin-top:6px">Say it</div></div>
+          <div class="card" style="flex:1;text-align:center;padding:16px 6px"><span class="ico" data-ico="cam" data-size="26"></span><div style="font-size:13px;font-weight:600;margin-top:6px">Snap a page</div></div>
+        </div>
+        <div class="card" style="font-size:13px;line-height:1.6;color:var(--muted)">No signal? Write anyway. It saves on your phone and sends when you're back online.</div>
+      </div>
+
+      <div class="tslide" id="ts2" style="display:none">
+        <h1 style="margin:6px 0 6px;font-size:25px;text-align:center">Step 2: Answer one question, then rate</h1>
+        <p style="margin:0 0 16px;font-size:14px;line-height:1.55;color:var(--muted);text-align:center">An AI asks one gentle follow-up. Then you rate 8 skills in under a minute.</p>
+        <div class="card" style="margin-bottom:12px">
+          <div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gold-text);margin-bottom:6px">A gentle follow-up</div>
+          <div style="font-size:14px;font-weight:600;line-height:1.5">You mentioned feeling nervous — what helped you keep going?</div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
+          <div style="font-size:13px;font-weight:600;margin-bottom:4px">Resilience</div>
+          <div class="chips" style="margin-top:4px"><span class="chip" style="width:28px;height:28px;font-size:12px;line-height:25px;text-align:center">1</span><span class="chip" style="width:28px;height:28px;font-size:12px;line-height:25px;text-align:center">2</span><span class="chip" style="width:28px;height:28px;font-size:12px;line-height:25px;text-align:center">3</span><span class="chip" style="width:28px;height:28px;font-size:12px;line-height:25px;text-align:center">4</span><span class="chip on" style="width:28px;height:28px;font-size:12px;line-height:25px;text-align:center">5</span><span class="chip" style="width:28px;height:28px;font-size:12px;line-height:25px;text-align:center">6</span><span class="chip" style="width:28px;height:28px;font-size:12px;line-height:25px;text-align:center">7</span></div>
+        </div>
+        <div class="card" style="display:flex;gap:12px;align-items:center"><span class="castle" data-level="2" data-size="38" data-color="#C9861A"></span><div style="font-size:13px;line-height:1.5;color:var(--muted)">Keep checking in to build your castle and unlock milestones.</div></div>
+      </div>
+
+      <div class="grow"></div>
+      <div class="dots" style="margin-bottom:16px" id="tourDots"><i class="on"></i><i></i><i></i></div>
+      <div style="display:flex;gap:10px">
+        <a id="tourPrev" class="btn-outline" style="width:90px;display:none" onclick="tourStep(-1)">Back</a>
+        <a id="tourNext" class="btn-primary" onclick="tourStep(1)">Next</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 CONSENT -->
+  <section class="screen" id="consent" data-label="3 · Before you start">
+    <div class="col">
+      <a class="backbtn" onclick="back()" aria-label="Back"><span class="ico" data-ico="back" data-size="20"></span></a>
+      <h1 style="margin:10px 0 6px;font-size:24px">Before you start</h1>
+      <p style="margin:0 0 18px;font-size:14px;line-height:1.55;color:var(--muted)">Here's what happens with what you share.</p>
+      <div class="card" style="margin-bottom:12px">
+        <div style="font-size:15px;font-weight:600;margin-bottom:6px">Who can see your reflections</div>
+        <div style="font-size:13px;line-height:1.6;color:var(--muted)">Your <b>CCA advisor</b> and the <b>Sandbox team</b> can see your reflections and ratings, with your name. They use them to learn what helps students grow, and to offer help when it would make a difference. Sandbox also uses what students write, across all schools, to decide which programmes to keep, change or add.</div>
+      </div>
+      <div class="card" style="margin-bottom:12px;display:flex;gap:14px;align-items:center">
+        <div style="flex:1"><div style="font-size:15px;font-weight:600;margin-bottom:4px">AI follow-up questions</div><div style="font-size:13px;line-height:1.55;color:var(--muted)">An AI reads each reflection to ask you one follow-up question. You can switch this off.</div></div>
+        <label class="sw"><input type="checkbox" id="aiToggle" checked onchange="setAi(this.checked)"><span></span></label>
+      </div>
+      <div class="card" style="margin-bottom:12px"><div style="font-size:13px;line-height:1.6;color:var(--muted)">Only you see your growth web in full detail. You can ask to see or change your data at any time.</div></div>
+      <div class="grow filler"></div>
+      <label style="display:flex;gap:10px;align-items:flex-start;margin-bottom:14px;cursor:pointer">
+        <input type="checkbox" id="agree" style="margin-top:2px;width:18px;height:18px;accent-color:var(--accent)" onchange="syncAgree()">
+        <span style="font-size:13px;line-height:1.5;color:#4A4638">I understand who can see my reflections and how they're used</span>
       </label>
-      <a class="btn-primary" onclick="showScreen('home')">Continue</a>
+      <a class="btn-primary disabled" id="consentBtn" onclick="consentNext()">Continue</a>
     </div>
   </section>
 
-  <!-- ============ 3. HOME ============ -->
-  <section class="screen" id="home" data-label="3 · Home">
-    <div style="width: 100%; height: 100%; box-sizing: border-box; padding: 24px 24px 16px; display: flex; flex-direction: column;">
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-        <h1 style="margin: 0; font-size: 21px; font-weight: 700;">Hi, Alex</h1>
-        <a onclick="showScreen('streaks')" style="display: flex; align-items: center; gap: 5px; background: rgba(255,166,38,0.22); padding: 6px 12px; border-radius: 20px;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 20L4 15L6 15L6 12L8 12L8 15L10 15L10 10L14 10L14 15L16 15L16 12L18 12L18 15L20 15L20 20Z" stroke="var(--gold-icon)" stroke-width="1.8" stroke-linejoin="round"/></svg>
-          <span style="font-size: 13px; font-weight: 700; color: var(--gold-text);">5</span>
-        </a>
+  <!-- 4 PAST EVENTS -->
+  <section class="screen" id="events" data-label="4 · Three moments">
+    <div class="col">
+      <a class="backbtn" onclick="back()" aria-label="Back"><span class="ico" data-ico="back" data-size="20"></span></a>
+      <h1 style="margin:10px 0 6px;font-size:24px">Where are you coming from?</h1>
+      <p style="margin:0 0 16px;font-size:14px;line-height:1.55;color:var(--muted)">Tell us about 3 moments that shaped how you work: a project, a setback, a win. A line or two is enough.</p>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div><div class="small" style="margin-bottom:4px">Moment 1</div><textarea class="ta" style="height:70px" placeholder="e.g. Led a group project that nearly fell apart…"></textarea></div>
+        <div><div class="small" style="margin-bottom:4px">Moment 2</div><textarea class="ta" style="height:70px" placeholder="e.g. A pitch that didn't go as planned…"></textarea></div>
+        <div><div class="small" style="margin-bottom:4px">Moment 3</div><textarea class="ta" style="height:70px" placeholder="e.g. Something you're proud of…"></textarea></div>
       </div>
+      <div class="grow"></div>
+      <a class="btn-primary" onclick="startRate('baseline')" style="margin-top:14px">Continue</a>
+      <a class="link" style="margin-top:12px" onclick="startRate('baseline')">I'll do this later</a>
+    </div>
+  </section>
 
-      <div class="seg" style="margin-bottom: 16px;" id="homeModeSeg">
-        <button class="active" onclick="setHomeMode('personal', this)">Personal</button>
-        <button onclick="setHomeMode('school', this)">School</button>
+  <!-- 5 RATE -->
+  <section class="screen" id="rate" data-label="5 · Rate the 8 skills">
+    <div class="col">
+      <h1 style="margin:8px 0 6px;font-size:23px" id="rateTitle">Quick check</h1>
+      <p style="margin:0 0 4px;font-size:14px;line-height:1.55;color:var(--muted)" id="rateSub"></p>
+      <div class="small" id="rateEnds" style="margin-bottom:12px"></div>
+      <div id="rateRows" style="display:flex;flex-direction:column;gap:14px"></div>
+      <div class="small" style="margin:14px 0 6px;font-style:italic">Wording is a placeholder until Adrian confirms the final scale.</div>
+      <div class="grow"></div>
+      <div style="position:sticky;bottom:0;background:var(--bg-app);padding:10px 0 4px;margin-top:8px;box-shadow:0 -8px 12px var(--bg-app)">
+        <a class="btn-primary" onclick="saveRatings()">Save my ratings</a>
+        <a class="link" style="margin-top:10px" onclick="skipRatings()">Skip for now</a>
       </div>
+    </div>
+  </section>
 
-      <div id="homePersonalCard">
-        <a onclick="showScreen('reflect')" style="display: block; background: #FFFFFF; border-radius: 16px; padding: 18px; border: 1px solid var(--border); border-left: 4px solid var(--accent); margin-bottom: 22px;">
-          <div style="font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--faint); margin-bottom: 6px;">On your own time</div>
-          <div style="font-size: 16px; font-weight: 600; line-height: 1.4; margin-bottom: 10px;">Anything worth writing down today?</div>
-          <div style="font-size: 13px; font-weight: 600; color: var(--accent);">Reflect now →</div>
-        </a>
+  <!-- 6 HOME -->
+  <section class="screen" id="home" data-label="6 · Home">
+    <div class="col" style="padding-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <h1 style="margin:0;font-size:21px">Hi, Alex</h1>
+        <a onclick="go('streaks')" style="display:flex;align-items:center;gap:5px;background:rgba(255,166,38,.22);padding:6px 12px;border-radius:20px"><span class="castle" data-level="1" data-size="16" data-color="#C9861A"></span><span style="font-size:13px;font-weight:700;color:var(--gold-text)" id="homeStreak">5</span></a>
       </div>
-      <div id="homeSchoolCard" style="display: none;">
-        <a onclick="showScreen('reflect')" style="display: block; background: #FFFFFF; border-radius: 16px; padding: 18px; border: 1px solid var(--border); border-left: 4px solid var(--gold);">
-          <div style="font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--gold-text); margin-bottom: 6px;">From your advisor · Sandbox Advocates</div>
-          <div style="font-size: 16px; font-weight: 600; line-height: 1.4; margin-bottom: 10px;">How did your internship pitch go?</div>
-          <div style="font-size: 13px; font-weight: 600; color: var(--accent);">Respond now →</div>
-        </a>
-      </div>
-      <div style="height: 6px;"></div>
+      <div id="queuePill" style="display:none;margin-bottom:12px;background:#FFF4E0;border:1px solid var(--gold);color:var(--gold-text);font-size:12px;font-weight:600;padding:8px 12px;border-radius:10px"></div>
 
-      <div style="font-size: 12px; color: var(--faint); margin-bottom: 10px;">Or start fresh</div>
-      <div style="display: flex; gap: 12px; margin-bottom: 20px;">
-        <a onclick="showScreen('reflect')" style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; background: #FFFFFF; border: 1px solid var(--border); border-radius: 14px; padding: 14px 0;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10" stroke="#4A4638" stroke-width="1.8" stroke-linecap="round"/></svg>
-          <span style="font-size: 11px; color: #4A4638;">Text</span>
-        </a>
-        <a onclick="showScreen('reflect'); setTimeout(function(){setInputMode('voice')}, 50)" style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; background: #FFFFFF; border: 1px solid var(--border); border-radius: 14px; padding: 14px 0;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" stroke="#4A4638" stroke-width="1.8"/><path d="M6 11a6 6 0 0 0 12 0M12 17v3" stroke="#4A4638" stroke-width="1.8" stroke-linecap="round"/></svg>
-          <span style="font-size: 11px; color: #4A4638;">Voice</span>
-        </a>
-        <a onclick="showScreen('reflect'); setTimeout(function(){setInputMode('photo')}, 50)" style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; background: #FFFFFF; border: 1px solid var(--border); border-radius: 14px; padding: 14px 0;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="9" y="4" width="6" height="3.5" rx="1" stroke="#4A4638" stroke-width="1.8"/><rect x="3" y="7.5" width="18" height="12.5" rx="3" stroke="#4A4638" stroke-width="1.8"/><circle cx="12" cy="14" r="3.3" stroke="#4A4638" stroke-width="1.8"/></svg>
-          <span style="font-size: 11px; color: #4A4638;">Photo</span>
-        </a>
-      </div>
-      <a onclick="showScreen('growth')" style="display: flex; align-items: center; gap: 14px; background: #FFFFFF; border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 12px;">
-        <svg width="46" height="46" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M4 20L4 15L6 15L6 12L8 12L8 15L10 15L10 10L14 10L14 15L16 15L16 12L18 12L18 15L20 15L20 20Z" stroke="var(--accent)" stroke-width="1.6" stroke-linejoin="round"/>
-          <path d="M12 10V5.5M12 5.5L15.8 6.9L12 8.3" stroke="var(--accent)" stroke-width="1.4" stroke-linejoin="round"/>
-        </svg>
-        <div style="flex-grow: 1;">
-          <div style="font-size: 14px; font-weight: 600; margin-bottom: 2px;">Your growth</div>
-          <div style="font-size: 12px; color: var(--faint);">View full profile →</div>
-        </div>
+      <a onclick="startReflect('text')" class="card" style="display:block;border-left:4px solid var(--accent);margin-bottom:12px">
+        <div class="small" style="letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Your fortnightly check-in</div>
+        <div style="font-size:16px;font-weight:600;line-height:1.4;margin-bottom:8px">How have the last two weeks been? Pick one moment that stood out.</div>
+        <div style="font-size:13px;font-weight:600;color:var(--accent)">Reflect now →</div>
       </a>
-      <div style="flex-grow: 1;"></div>
-      <div style="display: flex; justify-content: space-around; padding-top: 14px; border-top: 1px solid var(--border);">
-        <a onclick="showScreen('home')" style="display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--accent);">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 20L4 15L6 15L6 12L8 12L8 15L10 15L10 10L14 10L14 15L16 15L16 12L18 12L18 15L20 15L20 20Z" stroke="var(--accent)" stroke-width="1.8" stroke-linejoin="round"/></svg>
-          <span style="font-size: 10px; font-weight: 600;">Home</span>
-        </a>
-        <a onclick="showScreen('reflect')" style="display: flex; flex-direction: column; align-items: center; gap: 4px; color: #A6A192;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 21L10 17M10 17L17 10C18 9 18 7.5 17 6.5C16 5.5 14.5 5.5 13.5 6.5L6.5 13.5C5.5 14.5 5.5 16 6.5 17C7.5 18 9 18 10 17Z" stroke="#A6A192" stroke-width="1.7" stroke-linejoin="round"/><path d="M4 21H8" stroke="#A6A192" stroke-width="1.7" stroke-linecap="round"/></svg>
-          <span style="font-size: 10px;">Reflect</span>
-        </a>
-        <a onclick="showScreen('growth')" style="display: flex; flex-direction: column; align-items: center; gap: 4px; color: #A6A192;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 20L4 15L6 15L6 12L8 12L8 15L10 15L10 10L14 10L14 15L16 15L16 12L18 12L18 15L20 15L20 20Z" stroke="#A6A192" stroke-width="1.7" stroke-linejoin="round"/><path d="M12 10V5.5M12 5.5L15.8 6.9L12 8.3" stroke="#A6A192" stroke-width="1.5" stroke-linejoin="round"/></svg>
-          <span style="font-size: 10px;">Growth</span>
-        </a>
-        <a onclick="showScreen('profile')" style="display: flex; flex-direction: column; align-items: center; gap: 4px; color: #A6A192;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 12V9.5C8 8.4 8.9 7.5 10 7.5H14C15.1 7.5 16 8.4 16 9.5V12" stroke="#A6A192" stroke-width="1.7"/><path d="M6 12H18L16.5 20H7.5L6 12Z" stroke="#A6A192" stroke-width="1.7" stroke-linejoin="round"/><path d="M17.5 5L21 4L20 7.5" stroke="#A6A192" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <span style="font-size: 10px;">Profile</span>
-        </a>
+      <div id="upcomingCard" style="display:none;margin-bottom:12px" class="card"></div>
+
+      <div class="small" style="margin:6px 0 8px">Or start fresh</div>
+      <div style="display:flex;gap:10px;margin-bottom:14px">
+        <a onclick="startReflect('text')" class="card" style="flex:1;text-align:center;padding:12px 0"><span class="ico" data-ico="text" data-size="18"></span><div style="font-size:11px;color:#4A4638;margin-top:4px">Text</div></a>
+        <a onclick="startReflect('voice')" class="card" style="flex:1;text-align:center;padding:12px 0"><span class="ico" data-ico="mic" data-size="18"></span><div style="font-size:11px;color:#4A4638;margin-top:4px">Voice</div></a>
+        <a onclick="startReflect('photo')" class="card" style="flex:1;text-align:center;padding:12px 0"><span class="ico" data-ico="cam" data-size="18"></span><div style="font-size:11px;color:#4A4638;margin-top:4px">Photo</div></a>
+      </div>
+
+      <a onclick="go('growth')" class="card" style="display:flex;align-items:center;gap:14px;margin-bottom:10px;padding:14px">
+        <span class="castle" data-level="2" data-size="42"></span>
+        <div class="grow"><div style="font-size:14px;font-weight:600;margin-bottom:2px">Your growth</div><div class="small">See where you started and where you are now →</div></div>
+      </a>
+      <a onclick="go('eventflag')" class="card" style="display:flex;align-items:center;gap:12px;margin-bottom:10px;padding:14px">
+        <span class="ico" data-ico="cal" data-size="22"></span>
+        <div class="grow"><div style="font-size:14px;font-weight:600">Something coming up?</div><div class="small">Flag an event and we'll prompt you before and after</div></div>
+      </a>
+      <a class="link" style="margin:2px 0 10px" onclick="go('support')">Need to talk to someone?</a>
+      <div class="grow"></div>
+
+      <div style="display:flex;justify-content:space-around;padding-top:12px;border-top:1px solid var(--border)">
+        <a onclick="go('home')" style="display:flex;flex-direction:column;align-items:center;gap:4px"><span class="castle" data-level="1" data-size="20" data-color="#003C77"></span><span style="font-size:10px;font-weight:600;color:var(--accent)">Home</span></a>
+        <a onclick="startReflect('text')" style="display:flex;flex-direction:column;align-items:center;gap:4px"><span class="ico" data-ico="pencil" data-size="20" data-color="#A6A192"></span><span style="font-size:10px;color:#A6A192">Reflect</span></a>
+        <a onclick="go('growth')" style="display:flex;flex-direction:column;align-items:center;gap:4px"><span class="castle" data-level="2" data-size="20" data-color="#A6A192"></span><span style="font-size:10px;color:#A6A192">Growth</span></a>
+        <a onclick="go('profile')" style="display:flex;flex-direction:column;align-items:center;gap:4px"><span class="ico" data-ico="bucket" data-size="20" data-color="#A6A192"></span><span style="font-size:10px;color:#A6A192">Profile</span></a>
       </div>
     </div>
   </section>
 
-  <!-- ============ 4. REFLECT (now with real multimodal + guided/free-write) ============ -->
-  <section class="screen" id="reflect" data-label="4 · New reflection">
-    <div style="width: 100%; height: 100%; box-sizing: border-box; padding: 22px 24px 24px; display: flex; flex-direction: column;">
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-        <a onclick="showScreen('home')" aria-label="Back" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6L9 12L15 18" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </a>
-        <h1 style="margin: 0; font-size: 16px; font-weight: 700;">New reflection</h1>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="opacity: 0.5;"><path d="M6 21L10 17M10 17L17 10C18 9 18 7.5 17 6.5C16 5.5 14.5 5.5 13.5 6.5L6.5 13.5C5.5 14.5 5.5 16 6.5 17C7.5 18 9 18 10 17Z" stroke="#8A8578" stroke-width="1.6" stroke-linejoin="round"/><path d="M4 21H8" stroke="#8A8578" stroke-width="1.6" stroke-linecap="round"/></svg>
+  <!-- 7 REFLECT -->
+  <section class="screen" id="reflect" data-label="7 · New reflection">
+    <div class="col">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <a class="backbtn" onclick="back()" aria-label="Back"><span class="ico" data-ico="back" data-size="18"></span></a>
+        <h1 style="margin:0;font-size:16px">New reflection</h1>
+        <span style="width:32px"></span>
       </div>
-
-      <div style="font-size: 12px; color: var(--faint); margin-bottom: 8px;">How would you like to reflect?</div>
-      <div class="seg" style="margin-bottom: 16px;" id="modeSeg">
-        <button class="active" onclick="setInputMode('text', this)">Text</button>
-        <button onclick="setInputMode('voice', this)">Voice</button>
-        <button onclick="setInputMode('photo', this)">Photo</button>
+      <div class="small" style="margin-bottom:8px">How would you like to reflect?</div>
+      <div class="seg" style="margin-bottom:14px" id="modeSeg">
+        <button class="active" onclick="setInputMode('text',this)">Text</button>
+        <button onclick="setInputMode('voice',this)">Voice</button>
+        <button onclick="setInputMode('photo',this)">Photo</button>
       </div>
-
       <div id="promptModeWrap">
-        <div style="font-size: 12px; color: var(--faint); margin-bottom: 8px;">Guided or free write?</div>
-        <div class="seg" style="margin-bottom: 18px;" id="promptSeg">
-          <button class="active" onclick="setPromptMode('guided', this)">Guided</button>
-          <button onclick="setPromptMode('free', this)">Free write</button>
+        <div class="small" style="margin-bottom:8px">Guided or free write?</div>
+        <div class="seg" style="margin-bottom:16px" id="promptSeg">
+          <button class="active" onclick="setPromptMode('guided',this)">Guided</button>
+          <button onclick="setPromptMode('free',this)">Free write</button>
         </div>
       </div>
 
-      <!-- TEXT panel -->
       <div class="mm-panel active" id="panel-text">
         <div id="guidedFields">
-          <label style="font-size: 13px; font-weight: 600; margin-bottom: 8px; display: block;">What happened?</label>
-          <textarea placeholder="Type or paste what happened…" style="width: 100%; box-sizing: border-box; height: 80px; border: 1px solid var(--border); border-radius: 12px; padding: 12px; font-size: 14px; background: #FFFFFF; resize: none; margin-bottom: 14px;"></textarea>
-          <label style="font-size: 13px; font-weight: 600; margin-bottom: 8px; display: block;">How did it make you feel, and what did you learn?</label>
-          <textarea placeholder="Take your time — there's no wrong answer" style="width: 100%; box-sizing: border-box; height: 90px; border: 1px solid var(--border); border-radius: 12px; padding: 12px; font-size: 14px; background: #FFFFFF; resize: none;"></textarea>
+          <label style="font-size:13px;font-weight:600;margin-bottom:6px;display:block">What happened?</label>
+          <textarea class="ta" id="gf1" style="height:84px;margin-bottom:12px" placeholder="Type what happened…"></textarea>
+          <label style="font-size:13px;font-weight:600;margin-bottom:6px;display:block">How did it feel, and what did you learn?</label>
+          <textarea class="ta" id="gf2" style="height:92px" placeholder="Take your time — there's no wrong answer"></textarea>
         </div>
-        <div id="freeField" style="display: none;">
-          <textarea placeholder="Write whatever's on your mind…" style="width: 100%; box-sizing: border-box; height: 190px; border: 1px solid var(--border); border-radius: 12px; padding: 12px; font-size: 14px; background: #FFFFFF; resize: none;"></textarea>
-        </div>
+        <div id="freeField" style="display:none"><textarea class="ta" id="ff" style="height:200px" placeholder="Write whatever's on your mind…"></textarea></div>
       </div>
 
-      <!-- VOICE panel -->
       <div class="mm-panel" id="panel-voice">
-        <div style="background: #FFFFFF; border: 1px solid var(--border); border-radius: 16px; padding: 18px; text-align: center;">
-          <button class="record-circle" id="recBtn" onclick="toggleRecording()" aria-label="Record">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" id="recIcon"><rect x="9" y="3" width="6" height="11" rx="3" stroke="#fff" stroke-width="1.8"/><path d="M6 11a6 6 0 0 0 12 0M12 17v3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
-          </button>
-          <div id="recStatus" style="font-size: 13px; color: var(--faint);">Tap to start recording</div>
-          <div id="recTranscript" style="display: none; margin-top: 16px; text-align: left; background: var(--card-alt); border-radius: 10px; padding: 12px; font-size: 13px; color: #4A4638; font-style: italic;"></div>
+        <div class="card" style="text-align:center">
+          <button class="record-circle" id="recBtn" onclick="toggleRecording()" aria-label="Record"><span class="ico" data-ico="mic" data-size="28" data-color="#fff"></span></button>
+          <div id="recStatus" class="small">Tap to start recording</div>
+          <div id="transcriptWrap" style="display:none;text-align:left;margin-top:14px">
+            <div style="font-size:13px;font-weight:600;margin-bottom:4px">Check your transcript</div>
+            <div class="small" style="margin-bottom:6px">Fix anything we got wrong before you submit.</div>
+            <textarea class="ta" id="transcript" style="height:110px"></textarea>
+          </div>
         </div>
       </div>
 
-      <!-- PHOTO panel -->
       <div class="mm-panel" id="panel-photo">
-        <label class="dropzone" for="photoInput" style="display: block;">
-          <div id="photoPlaceholder">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" style="margin-bottom: 8px;"><rect x="9" y="4" width="6" height="3.5" rx="1" stroke="#8A8578" stroke-width="1.6"/><rect x="3" y="7.5" width="18" height="12.5" rx="3" stroke="#8A8578" stroke-width="1.6"/><circle cx="12" cy="14" r="3.2" stroke="#8A8578" stroke-width="1.6"/></svg>
-            <div>Tap to take a photo or upload your handwritten entry</div>
-          </div>
-          <div id="photoResult" style="display: none;">
-            <img id="photoPreview"/>
-            <div style="font-size: 12px; color: var(--faint); margin-top: 10px;">Tap to change photo</div>
-          </div>
+        <label class="dropzone" for="photoInput" id="dropzone">
+          <div id="photoPlaceholder"><span class="ico" data-ico="cam" data-size="28" data-color="#8A8578"></span><div style="margin-top:8px">Tap to take a photo or upload your handwritten page</div></div>
+          <div id="photoResult" style="display:none"><img id="photoPreview" alt="Your page"><div class="small" style="margin-top:8px">Tap to change photo</div></div>
         </label>
-        <input type="file" id="photoInput" accept="image/*" style="display: none;" onchange="handlePhoto(event)"/>
+        <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="handlePhoto(event)">
+        <div id="ocrWrap" style="display:none;margin-top:12px">
+          <div style="font-size:13px;font-weight:600;margin-bottom:4px">Check the text we read</div>
+          <div class="small" style="margin-bottom:6px">Fix anything we misread before you submit.</div>
+          <textarea class="ta" id="ocrText" style="height:96px"></textarea>
+          <div class="small" style="margin-top:6px;font-style:italic">Prototype note: the real app reads your handwriting here. Sample text is shown.</div>
+        </div>
       </div>
 
-      <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center;">
-        <svg width="132" height="66" viewBox="0 0 110 55" fill="none" aria-hidden="true" style="opacity: 0.55;"><path d="M13 22Q32 0 51 22" stroke="#2B2A25" stroke-width="1.7" stroke-linecap="round"/><ellipse cx="32" cy="22" rx="19" ry="5" stroke="#2B2A25" stroke-width="1.7"/><path d="M15 23L23 49" stroke="#2B2A25" stroke-width="1.7" stroke-linecap="round"/><path d="M49 23L41 49" stroke="#2B2A25" stroke-width="1.7" stroke-linecap="round"/><path d="M23 49Q32 53 41 49" stroke="#2B2A25" stroke-width="1.7" stroke-linecap="round"/><path d="M18 33Q32 36 46 33" stroke="#2B2A25" stroke-width="1.2" opacity="0.55"/><path d="M77 2L93 2" stroke="#2B2A25" stroke-width="1.8" stroke-linecap="round"/><path d="M85 2V33" stroke="#2B2A25" stroke-width="1.8" stroke-linecap="round"/><circle cx="85" cy="39" r="11" stroke="#2B2A25" stroke-width="1.8"/><circle cx="81" cy="41" r="1.2" fill="#2B2A25"/><circle cx="89" cy="41" r="1.2" fill="#2B2A25"/></svg>
+      <div class="grow filler"></div>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:12px">
+        <span class="ico" data-ico="eye" data-size="14" data-color="#8A8578"></span>
+        <span class="small" style="font-size:11px">Seen by your CCA advisor and the Sandbox team, to support you. <a style="text-decoration:underline" onclick="go('consent')">Why?</a></span>
       </div>
-      <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 14px;">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2" stroke="#8A8578" stroke-width="1.8"/><path d="M8 11V7a4 4 0 0 1 8 0v4" stroke="#8A8578" stroke-width="1.8"/></svg>
-        <span style="font-size: 11px; color: var(--faint);">Visible to your advisor and the Sandbox team</span>
-      </div>
-      <a class="btn-primary" onclick="showScreen('aifollowup')">Submit reflection</a>
+      <a class="btn-primary" onclick="submitReflection()">Submit reflection</a>
     </div>
   </section>
 
-  <!-- ============ 5. AI FOLLOW-UP ============ -->
-  <section class="screen" id="aifollowup" data-label="5 · AI follow-up">
-    <div style="width: 100%; height: 100%; box-sizing: border-box; padding: 22px 24px 24px; display: flex; flex-direction: column;">
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 20L4 15L6 15L6 12L8 12L8 15L10 15L10 10L14 10L14 15L16 15L16 12L18 12L18 15L20 15L20 20Z" stroke="var(--accent)" stroke-width="1.7" stroke-linejoin="round"/><path d="M12 10V5.5M12 5.5L15.8 6.9L12 8.3" stroke="var(--accent)" stroke-width="1.5" stroke-linejoin="round"/></svg>
-          <h1 style="margin: 0; font-size: 16px; font-weight: 700;">Reflection saved</h1>
-        </div>
-        <a onclick="showScreen('home')" aria-label="Close" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="#8A8578" stroke-width="1.8" stroke-linecap="round"/></svg>
-        </a>
+  <!-- 8 FOLLOW-UP -->
+  <section class="screen" id="followup" data-label="8 · AI follow-up">
+    <div class="col">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px"><span class="castle" data-level="2" data-size="22"></span><h1 style="margin:0;font-size:16px">Reflection saved</h1></div>
+      <div style="background:var(--card-alt);border-radius:14px;padding:16px;margin-bottom:16px">
+        <div class="small" style="letter-spacing:1px;text-transform:uppercase;font-size:10px;margin-bottom:6px">Your reflection</div>
+        <div style="font-size:13px;line-height:1.6;color:#4A4638;font-style:italic" id="fuSnippet"></div>
       </div>
-      <div style="background: var(--card-alt); border-radius: 14px; padding: 16px; margin-bottom: 18px;">
-        <div style="font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--faint); margin-bottom: 6px;">Your reflection</div>
-        <div style="font-size: 13px; line-height: 1.6; color: #4A4638; font-style: italic;">"Pitched our idea to the panel today — I froze for a bit when they pushed back on the pricing model, but I recovered and answered it directly…"</div>
+      <div class="card" style="margin-bottom:12px">
+        <div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gold-text);margin-bottom:8px">A gentle follow-up</div>
+        <div style="font-size:15px;line-height:1.5;font-weight:600;margin-bottom:12px" id="fuQuestion"></div>
+        <textarea class="ta" style="height:84px;font-size:13px;background:var(--bg-app)" placeholder="Optional — add more if you'd like"></textarea>
       </div>
-      <div style="background: #FFFFFF; border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 16px;">
-        <div style="font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--gold-text); margin-bottom: 8px;">A gentle follow-up</div>
-        <div style="font-size: 15px; line-height: 1.5; font-weight: 600; margin-bottom: 14px;">You mentioned freezing for a bit — what helped you push through it?</div>
-        <textarea placeholder="Optional — add more if you'd like" style="width: 100%; box-sizing: border-box; height: 80px; border: 1px solid var(--border); border-radius: 10px; padding: 10px; font-size: 13px; background: var(--bg-app); resize: none;"></textarea>
-      </div>
-      <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center;">
-        <svg width="132" height="66" viewBox="0 0 110 55" fill="none" aria-hidden="true" style="opacity: 0.55;"><path d="M13 22Q32 0 51 22" stroke="#2B2A25" stroke-width="1.7" stroke-linecap="round"/><ellipse cx="32" cy="22" rx="19" ry="5" stroke="#2B2A25" stroke-width="1.7"/><path d="M15 23L23 49" stroke="#2B2A25" stroke-width="1.7" stroke-linecap="round"/><path d="M49 23L41 49" stroke="#2B2A25" stroke-width="1.7" stroke-linecap="round"/><path d="M23 49Q32 53 41 49" stroke="#2B2A25" stroke-width="1.7" stroke-linecap="round"/><path d="M18 33Q32 36 46 33" stroke="#2B2A25" stroke-width="1.2" opacity="0.55"/><path d="M77 2L93 2" stroke="#2B2A25" stroke-width="1.8" stroke-linecap="round"/><path d="M85 2V33" stroke="#2B2A25" stroke-width="1.8" stroke-linecap="round"/><circle cx="85" cy="39" r="11" stroke="#2B2A25" stroke-width="1.8"/><circle cx="81" cy="41" r="1.2" fill="#2B2A25"/><circle cx="89" cy="41" r="1.2" fill="#2B2A25"/></svg>
-      </div>
-      <div style="display: flex; gap: 12px;">
-        <a onclick="showScreen('home')" style="flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding: 0 18px; height: 52px; color: var(--faint); font-size: 14px; font-weight: 600;">Skip</a>
-        <a onclick="finishReflection()" style="flex-grow: 1; display: flex; align-items: center; justify-content: center; height: 52px; background: var(--accent); color: #FFFFFF; border-radius: 14px; font-size: 15px; font-weight: 600;">Save &amp; finish</a>
+      <div class="grow filler"></div>
+      <div style="display:flex;gap:12px">
+        <a onclick="afterFollowup()" style="display:flex;align-items:center;justify-content:center;padding:0 18px;height:52px;color:var(--faint);font-size:14px;font-weight:600">Skip</a>
+        <a class="btn-primary" style="flex:1;font-size:15px" onclick="afterFollowup()">Save &amp; continue</a>
       </div>
     </div>
   </section>
 
-  <!-- ============ 6. GROWTH ============ -->
-  <section class="screen" id="growth" data-label="6 · Growth profile">
-    <div style="width: 100%; height: 100%; box-sizing: border-box; padding: 22px 24px 28px; display: flex; flex-direction: column;">
-      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
-        <a onclick="showScreen('home')" aria-label="Back" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6L9 12L15 18" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </a>
-        <h1 style="margin: 0; font-size: 19px; font-weight: 700;">Your growth</h1>
+  <!-- 9 GROWTH -->
+  <section class="screen" id="growth" data-label="9 · Growth">
+    <div class="col">
+      <div class="topbar"><a class="backbtn" onclick="back()" aria-label="Back"><span class="ico" data-ico="back" data-size="18"></span></a><h1>Your growth</h1></div>
+      <div id="growthChart" style="display:flex;justify-content:center"></div>
+      <div style="display:flex;justify-content:center;gap:18px;font-size:12px;color:var(--muted);margin:4px 0 10px;flex-wrap:wrap">
+        <span><span style="display:inline-block;width:24px;border-top:3px dashed var(--orange);vertical-align:middle;margin-right:6px"></span>When you started</span>
+        <span><span style="display:inline-block;width:24px;border-top:3px solid var(--green);vertical-align:middle;margin-right:6px"></span>Where you are now</span>
       </div>
-      <div style="display: flex; justify-content: center; margin: 8px 0 4px;">
-        <svg width="300" height="300" viewBox="-70 -50 480 480" role="img" aria-label="Radar chart of eight entrepreneurial mindset traits">
-          <polygon points="170,40 261.9,78.1 300,170 261.9,261.9 170,300 78.1,261.9 40,170 78.1,78.1" fill="none" stroke="#E3DECF" stroke-width="1"/>
-          <polygon points="170,84 230.8,109.2 256,170 230.8,230.8 170,256 109.2,230.8 84,170 109.2,109.2" fill="none" stroke="#E3DECF" stroke-width="1"/>
-          <polygon points="170,127 200.4,139.6 213,170 200.4,200.4 170,213 139.6,200.4 127,170 139.6,139.6" fill="none" stroke="#E3DECF" stroke-width="1"/>
-          <line x1="170" y1="170" x2="170" y2="40" stroke="#E3DECF" stroke-width="1"/>
-          <line x1="170" y1="170" x2="261.9" y2="78.1" stroke="#E3DECF" stroke-width="1"/>
-          <line x1="170" y1="170" x2="300" y2="170" stroke="#E3DECF" stroke-width="1"/>
-          <line x1="170" y1="170" x2="261.9" y2="261.9" stroke="#E3DECF" stroke-width="1"/>
-          <line x1="170" y1="170" x2="170" y2="300" stroke="#E3DECF" stroke-width="1"/>
-          <line x1="170" y1="170" x2="78.1" y2="261.9" stroke="#E3DECF" stroke-width="1"/>
-          <line x1="170" y1="170" x2="40" y2="170" stroke="#E3DECF" stroke-width="1"/>
-          <line x1="170" y1="170" x2="78.1" y2="78.1" stroke="#E3DECF" stroke-width="1"/>
-          <polygon points="170,70 219.5,120.5 280,170 233.6,233.6 170,230 102.8,237.2 50,170 113.4,113.4" fill="var(--accent)" fill-opacity="0.32" stroke="var(--accent)" stroke-width="2"/>
-          <text x="170" y="16" text-anchor="middle" font-size="10" fill="#6B6659">Collaboration</text>
-          <text x="278" y="58" text-anchor="start" font-size="10" fill="#6B6659">Networking</text>
-          <text x="322" y="174" text-anchor="start" font-size="10" fill="#6B6659">Innovation</text>
-          <text x="278" y="292" text-anchor="start" font-size="10" fill="#6B6659">Goals</text>
-          <text x="170" y="332" text-anchor="middle" font-size="10" fill="#6B6659">Opportunity</text>
-          <text x="62" y="292" text-anchor="end" font-size="10" fill="#6B6659">Risk-taking</text>
-          <text x="18" y="174" text-anchor="end" font-size="10" fill="#6B6659">Resilience</text>
-          <text x="62" y="58" text-anchor="end" font-size="10" fill="#6B6659">Resourceful</text>
-        </svg>
+      <a class="btn-outline" style="height:42px;font-size:14px;margin-bottom:12px" onclick="openLegend()">What do these 8 skills mean?</a>
+      <div style="display:flex;gap:10px;margin-bottom:12px">
+        <div class="card" style="flex:1;text-align:center;padding:12px"><div style="font-size:22px;font-weight:700;font-family:Georgia,serif" id="gRefl">12</div><div class="small">reflections</div></div>
+        <div class="card" style="flex:1;text-align:center;padding:12px"><div style="font-size:15px;font-weight:700;font-family:Georgia,serif" id="gTop">Resilience</div><div class="small">biggest growth</div></div>
       </div>
-      <div style="text-align: center; font-size: 12px; color: var(--faint); margin-bottom: 12px;">Compared to your first reflection in August</div>
-      <div style="display: flex; gap: 12px; margin-bottom: 10px;">
-        <div style="flex: 1; background: #FFFFFF; border: 1px solid var(--border); border-radius: 14px; padding: 14px; text-align: center;">
-          <div style="font-size: 22px; font-weight: 700; font-family: Georgia, serif;">12</div>
-          <div style="font-size: 11px; color: var(--faint); margin-top: 2px;">reflections logged</div>
-        </div>
-        <div style="flex: 1; background: #FFFFFF; border: 1px solid var(--border); border-radius: 14px; padding: 14px; text-align: center;">
-          <div style="font-size: 16px; font-weight: 700; font-family: Georgia, serif;">Resilience</div>
-          <div style="font-size: 11px; color: var(--faint); margin-top: 2px;">your strongest area</div>
-        </div>
-      </div>
-      <div style="flex-grow: 1;"></div>
-      <a class="btn-outline" style="margin-bottom: 10px;" onclick="showScreen('profile')">View CV &amp; LinkedIn tools →</a>
-      <a class="btn-outline" onclick="showScreen('home')">Back to home</a>
+      <div class="grow"></div>
+      <a class="btn-primary" style="margin-bottom:10px" onclick="go('summary')">See my term summary</a>
+      <a class="link" onclick="go('profile')">CV &amp; LinkedIn tools →</a>
     </div>
   </section>
 
-  <!-- ============ 7. STREAKS ============ -->
-  <section class="screen" id="streaks" data-label="7 · Streaks">
-    <div style="width: 100%; height: 100%; box-sizing: border-box; padding: 22px 24px 28px; display: flex; flex-direction: column;">
-      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 22px;">
-        <a onclick="showScreen('home')" aria-label="Back" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6L9 12L15 18" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </a>
-        <h1 style="margin: 0; font-size: 19px; font-weight: 700;">Your streak</h1>
+  <!-- 10 SUMMARY -->
+  <section class="screen" id="summary" data-label="10 · End-of-period summary">
+    <div class="col">
+      <div class="topbar"><a class="backbtn" onclick="back()" aria-label="Back"><span class="ico" data-ico="back" data-size="18"></span></a><h1>Your term so far</h1></div>
+      <p style="margin:0 0 4px;font-size:14px;line-height:1.55;color:var(--muted)">Here's where you started and where you are now.</p>
+      <div id="summaryChart" style="display:flex;justify-content:center"></div>
+      <p id="sBasis" class="small" style="text-align:center;margin:0 0 6px"></p>
+      <div style="display:flex;justify-content:center;gap:18px;font-size:12px;color:var(--muted);margin:4px 0 12px;flex-wrap:wrap">
+        <span><span style="display:inline-block;width:24px;border-top:3px dashed var(--orange);vertical-align:middle;margin-right:6px"></span>Start of term</span>
+        <span><span style="display:inline-block;width:24px;border-top:3px solid var(--green);vertical-align:middle;margin-right:6px"></span>Now</span>
       </div>
-      <div style="display: flex; flex-direction: column; align-items: center; background: #FFFFFF; border: 1px solid var(--border); border-radius: 18px; padding: 26px 20px; margin-bottom: 18px;">
-        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M4 20L4 15L6 15L6 12L8 12L8 15L10 15L10 10L14 10L14 15L16 15L16 12L18 12L18 15L20 15L20 20Z" stroke="var(--gold-icon)" stroke-width="1.6" stroke-linejoin="round"/>
-          <path d="M12 10V5.3M12 5.3L15.8 6.8L12 8.2" stroke="var(--gold-icon)" stroke-width="1.4" stroke-linejoin="round"/>
-        </svg>
-        <div style="font-size: 38px; font-weight: 700; font-family: Georgia, serif; margin: 6px 0 2px;">5</div>
-        <div style="font-size: 13px; color: var(--faint);">weeks in a row</div>
-      </div>
-      <div style="font-size: 12px; color: var(--faint); margin-bottom: 10px;">This week</div>
-      <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;"><div style="width: 32px; height: 32px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 13l4 4L19 7" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span style="font-size: 10px; color: var(--faint);">M</span></div>
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;"><div style="width: 32px; height: 32px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 13l4 4L19 7" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span style="font-size: 10px; color: var(--faint);">T</span></div>
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;"><div style="width: 32px; height: 32px; border-radius: 50%; border: 1.5px dashed var(--dot-outline);"></div><span style="font-size: 10px; color: var(--faint);">W</span></div>
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;"><div style="width: 32px; height: 32px; border-radius: 50%; border: 1.5px dashed var(--dot-outline);"></div><span style="font-size: 10px; color: var(--faint);">T</span></div>
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;"><div style="width: 32px; height: 32px; border-radius: 50%; border: 1.5px dashed var(--dot-outline);"></div><span style="font-size: 10px; color: var(--faint);">F</span></div>
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;"><div style="width: 32px; height: 32px; border-radius: 50%; border: 1.5px dashed var(--dot-outline);"></div><span style="font-size: 10px; color: var(--faint);">S</span></div>
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;"><div style="width: 32px; height: 32px; border-radius: 50%; border: 1.5px dashed var(--dot-outline);"></div><span style="font-size: 10px; color: var(--faint);">S</span></div>
-      </div>
-      <div style="background: #FFFFFF; border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 16px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-          <span style="font-size: 13px; font-weight: 600;">Next milestone</span>
-          <span style="font-size: 12px; color: var(--gold-text); font-weight: 600;">2 weeks to go</span>
-        </div>
-        <div style="height: 8px; background: var(--card-alt); border-radius: 6px; overflow: hidden; margin-bottom: 8px;">
-          <div style="width: 62%; height: 100%; background: var(--gold);"></div>
-        </div>
-        <div style="font-size: 12px; color: var(--faint);">Reach a 7-week streak — reward pending confirmation from Sandbox</div>
-      </div>
-      <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center;">
-        <svg width="132" height="66" viewBox="0 0 110 55" fill="none" aria-hidden="true" style="opacity: 0.55;"><path d="M13 22Q32 0 51 22" stroke="#2B2A25" stroke-width="1.7" stroke-linecap="round"/><ellipse cx="32" cy="22" rx="19" ry="5" stroke="#2B2A25" stroke-width="1.7"/><path d="M15 23L23 49" stroke="#2B2A25" stroke-width="1.7" stroke-linecap="round"/><path d="M49 23L41 49" stroke="#2B2A25" stroke-width="1.7" stroke-linecap="round"/><path d="M23 49Q32 53 41 49" stroke="#2B2A25" stroke-width="1.7" stroke-linecap="round"/><path d="M18 33Q32 36 46 33" stroke="#2B2A25" stroke-width="1.2" opacity="0.55"/><path d="M77 2L93 2" stroke="#2B2A25" stroke-width="1.8" stroke-linecap="round"/><path d="M85 2V33" stroke="#2B2A25" stroke-width="1.8" stroke-linecap="round"/><circle cx="85" cy="39" r="11" stroke="#2B2A25" stroke-width="1.8"/><circle cx="81" cy="41" r="1.2" fill="#2B2A25"/><circle cx="89" cy="41" r="1.2" fill="#2B2A25"/></svg>
-      </div>
-      <a onclick="showScreen('crew')" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 52px; background: var(--accent); color: #FFFFFF; border-radius: 14px; font-size: 15px; font-weight: 600;">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 20L4 15L6 15L6 12L8 12L8 15L10 15L10 10L14 10L14 15L16 15L16 12L18 12L18 15L20 15L20 20Z" stroke="#FFFFFF" stroke-width="1.7" stroke-linejoin="round"/></svg>
-        Start a Crew Challenge
-      </a>
+      <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:700;margin-bottom:4px">You grew most in</div><div style="font-size:14px" id="sGrew"></div></div>
+      <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:700;margin-bottom:4px">Worth working on next</div><div style="font-size:14px" id="sWork"></div></div>
+      <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:700;margin-bottom:8px">Themes in your reflections <span class="small">(example)</span></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap"><span style="background:var(--card-alt);border-radius:20px;padding:4px 10px;font-size:12px">Teamwork</span><span style="background:var(--card-alt);border-radius:20px;padding:4px 10px;font-size:12px">Time pressure</span><span style="background:var(--card-alt);border-radius:20px;padding:4px 10px;font-size:12px">Presenting</span></div></div>
+      <div class="grow"></div>
+      <a class="btn-outline" onclick="back()">Back</a>
     </div>
   </section>
 
-  <!-- ============ 8. CREW CHALLENGE ============ -->
-  <section class="screen" id="crew" data-label="8 · Crew Challenge">
-    <div style="width: 100%; height: 100%; box-sizing: border-box; padding: 22px 24px 28px; display: flex; flex-direction: column;">
-      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
-        <a onclick="showScreen('streaks')" aria-label="Back" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6L9 12L15 18" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </a>
-        <h1 style="margin: 0; font-size: 19px; font-weight: 700;">Crew Challenge</h1>
+  <!-- 11 STREAKS -->
+  <section class="screen" id="streaks" data-label="11 · Streaks &amp; milestones">
+    <div class="col">
+      <div class="topbar"><a class="backbtn" onclick="back()" aria-label="Back"><span class="ico" data-ico="back" data-size="18"></span></a><h1>Your streak</h1></div>
+      <div class="card" style="display:flex;flex-direction:column;align-items:center;padding:22px 16px;margin-bottom:14px">
+        <span id="streakCastle"></span>
+        <div style="font-size:38px;font-weight:700;font-family:Georgia,serif;margin:4px 0 0" id="streakNum">5</div>
+        <div class="small">check-ins in a row</div>
+        <div style="display:flex;gap:8px;margin-top:12px" id="streakDots"></div>
       </div>
-      <div style="background: #FFFFFF; border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 16px; text-align: center;">
-        <div style="font-size: 12px; color: var(--faint); margin-bottom: 6px;">Everyone reflects this week — the reward doubles</div>
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="margin: 4px 0;">
-          <path d="M4 20L4 15L6 15L6 12L8 12L8 15L10 15L10 10L14 10L14 15L16 15L16 12L18 12L18 15L20 15L20 20Z" stroke="var(--accent)" stroke-width="1.6" stroke-linejoin="round"/>
-          <path d="M17 12V9.3M17 9.3L19.1 10.2L17 11.1" stroke="var(--accent)" stroke-width="1.2" stroke-linejoin="round"/>
-        </svg>
-        <div style="display: flex; justify-content: center; gap: 8px; margin: 4px 0 10px;">
-          <div style="width: 38px; height: 38px; border-radius: 50%; background: var(--accent); color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; border: 2px solid var(--bg-app);">A</div>
-          <div style="width: 38px; height: 38px; border-radius: 50%; background: var(--gold); color: var(--gold-text); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; border: 2px solid var(--bg-app);">JT</div>
-          <div style="width: 38px; height: 38px; border-radius: 50%; background: #6B6659; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; border: 2px solid var(--bg-app);">R</div>
-          <div style="width: 38px; height: 38px; border-radius: 50%; background: var(--card-alt); color: var(--faint); display: flex; align-items: center; justify-content: center; font-size: 15px; border: 2px dashed var(--dot-outline);">+</div>
-        </div>
-        <div style="font-size: 13px; font-weight: 600;">2 of 3 done this week</div>
-      </div>
-      <div style="font-size: 12px; color: var(--faint); margin-bottom: 10px;">Your crew</div>
-      <div style="display: flex; flex-direction: column; gap: 9px; margin-bottom: 16px;">
-        <div style="display: flex; align-items: center; gap: 12px; background: #FFFFFF; border: 1px solid var(--border); border-radius: 14px; padding: 11px 14px;">
-          <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0;">A</div>
-          <div style="flex-grow: 1;"><div style="font-size: 13px; font-weight: 600;">Alex (you)</div><div style="font-size: 11px; color: var(--faint);">Reflected on Monday</div></div>
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 13l4 4L19 7" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
-        <div style="display: flex; align-items: center; gap: 12px; background: #FFFFFF; border: 1px solid var(--border); border-radius: 14px; padding: 11px 14px;">
-          <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--gold); color: var(--gold-text); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0;">JT</div>
-          <div style="flex-grow: 1;"><div style="font-size: 13px; font-weight: 600;">Jun Tao</div><div style="font-size: 11px; color: var(--faint);">Reflected on Tuesday</div></div>
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 13l4 4L19 7" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
-        <div style="display: flex; align-items: center; gap: 12px; background: #FFFFFF; border: 1px solid var(--border); border-radius: 14px; padding: 11px 14px;">
-          <div style="width: 36px; height: 36px; border-radius: 50%; background: #6B6659; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0;">R</div>
-          <div style="flex-grow: 1;"><div style="font-size: 13px; font-weight: 600;">Rui</div><div style="font-size: 11px; color: var(--faint);">Hasn't reflected yet</div></div>
-          <div style="width: 17px; height: 17px; border-radius: 50%; border: 1.5px dashed var(--dot-outline);"></div>
-        </div>
-      </div>
-      <label style="font-size: 12px; color: var(--faint); margin-bottom: 8px; display: block;">Invite someone to your crew</label>
-      <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-        <input type="text" placeholder="Search by name" style="flex-grow: 1; box-sizing: border-box; height: 42px; border: 1px solid var(--border); border-radius: 12px; padding: 0 14px; font-size: 14px; background: #FFFFFF;"/>
-        <a style="display: flex; align-items: center; justify-content: center; width: 64px; height: 42px; background: var(--accent); color: #FFFFFF; border-radius: 12px; font-size: 13px; font-weight: 600;">Add</a>
-      </div>
-      <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center;">
-        <svg width="132" height="66" viewBox="0 0 110 55" fill="none" aria-hidden="true" style="opacity: 0.55;"><path d="M13 22Q32 0 51 22" stroke="#2B2A25" stroke-width="1.7" stroke-linecap="round"/><ellipse cx="32" cy="22" rx="19" ry="5" stroke="#2B2A25" stroke-width="1.7"/><path d="M15 23L23 49" stroke="#2B2A25" stroke-width="1.7" stroke-linecap="round"/><path d="M49 23L41 49" stroke="#2B2A25" stroke-width="1.7" stroke-linecap="round"/><path d="M23 49Q32 53 41 49" stroke="#2B2A25" stroke-width="1.7" stroke-linecap="round"/><path d="M18 33Q32 36 46 33" stroke="#2B2A25" stroke-width="1.2" opacity="0.55"/><path d="M77 2L93 2" stroke="#2B2A25" stroke-width="1.8" stroke-linecap="round"/><path d="M85 2V33" stroke="#2B2A25" stroke-width="1.8" stroke-linecap="round"/><circle cx="85" cy="39" r="11" stroke="#2B2A25" stroke-width="1.8"/><circle cx="81" cy="41" r="1.2" fill="#2B2A25"/><circle cx="89" cy="41" r="1.2" fill="#2B2A25"/></svg>
-      </div>
-      <a class="btn-outline" onclick="showScreen('home')">Back to home</a>
+      <div class="card" style="margin-bottom:12px;padding:6px 16px" id="ladder"></div>
+      <div class="small" style="margin-bottom:12px">Benefits marked <span class="tag-draft" style="margin:0">Draft</span> are ideas discussed with Sandbox. They are not yet approved.</div>
+      <div class="grow filler"></div>
+      <a class="btn-primary" style="gap:8px;font-size:15px" onclick="go('crew')"><span class="castle" data-level="1" data-size="17" data-color="#fff"></span>Start a Crew Challenge</a>
     </div>
   </section>
 
-  <!-- ============ 9. PROFILE ============ -->
-  <section class="screen" id="profile" data-label="9 · Profile">
-    <div style="width: 100%; height: 100%; box-sizing: border-box; padding: 24px 24px 20px; display: flex; flex-direction: column;">
-      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
-        <a onclick="showScreen('home')" aria-label="Back" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6L9 12L15 18" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </a>
-        <h1 style="margin: 0; font-size: 19px; font-weight: 700;">Profile</h1>
-      </div>
-
-      <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 20px;">
-        <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--accent); color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; flex-shrink: 0;">A</div>
-        <div>
-          <div style="font-size: 17px; font-weight: 700;">Alex</div>
-          <div style="font-size: 13px; color: var(--faint);">Year 2 · Business Studies</div>
+  <!-- 12 CREW -->
+  <section class="screen" id="crew" data-label="12 · Crew Challenge">
+    <div class="col">
+      <div class="topbar"><a class="backbtn" onclick="back()" aria-label="Back"><span class="ico" data-ico="back" data-size="18"></span></a><h1>Crew Challenge</h1></div>
+      <div class="card" style="text-align:center;margin-bottom:14px">
+        <div class="small" style="margin-bottom:6px">Everyone checks in this fortnight — the reward doubles <span class="tag-draft">Draft</span></div>
+        <span class="castle" data-level="2" data-size="40"></span>
+        <div style="display:flex;justify-content:center;gap:8px;margin:6px 0 10px">
+          <div style="width:38px;height:38px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">A</div>
+          <div style="width:38px;height:38px;border-radius:50%;background:var(--gold);color:var(--gold-text);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">JT</div>
+          <div style="width:38px;height:38px;border-radius:50%;background:#6B6659;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">R</div>
+          <div style="width:38px;height:38px;border-radius:50%;background:var(--card-alt);color:var(--faint);display:flex;align-items:center;justify-content:center;font-size:15px;border:2px dashed var(--dot)">+</div>
         </div>
+        <div style="font-size:13px;font-weight:600">2 of 3 done this fortnight</div>
       </div>
-
-      <div style="display: flex; gap: 10px; margin-bottom: 22px;">
-        <div style="flex: 1; background: #FFFFFF; border: 1px solid var(--border); border-radius: 12px; padding: 12px; text-align: center;">
-          <div style="font-size: 18px; font-weight: 700; font-family: Georgia, serif;">12</div>
-          <div style="font-size: 10px; color: var(--faint); margin-top: 2px;">reflections</div>
-        </div>
-        <div style="flex: 1; background: #FFFFFF; border: 1px solid var(--border); border-radius: 12px; padding: 12px; text-align: center;">
-          <div style="font-size: 18px; font-weight: 700; font-family: Georgia, serif;">5</div>
-          <div style="font-size: 10px; color: var(--faint); margin-top: 2px;">week streak</div>
-        </div>
-        <div style="flex: 1; background: #FFFFFF; border: 1px solid var(--border); border-radius: 12px; padding: 12px; text-align: center;">
-          <div style="font-size: 16px; font-weight: 700; font-family: Georgia, serif;">Resilience</div>
-          <div style="font-size: 10px; color: var(--faint); margin-top: 2px;">strongest</div>
-        </div>
+      <div class="small" style="margin-bottom:8px">Your crew</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
+        <div class="card" style="display:flex;align-items:center;gap:12px;padding:10px 14px"><div style="width:34px;height:34px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">A</div><div class="grow"><div style="font-size:13px;font-weight:600">Alex (you)</div><div class="small">Checked in on Monday</div></div><span class="ico" data-ico="check" data-size="17" data-color="#003C77"></span></div>
+        <div class="card" style="display:flex;align-items:center;gap:12px;padding:10px 14px"><div style="width:34px;height:34px;border-radius:50%;background:var(--gold);color:var(--gold-text);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">JT</div><div class="grow"><div style="font-size:13px;font-weight:600">Jun Tao</div><div class="small">Checked in on Tuesday</div></div><span class="ico" data-ico="check" data-size="17" data-color="#003C77"></span></div>
+        <div class="card" style="display:flex;align-items:center;gap:12px;padding:10px 14px"><div style="width:34px;height:34px;border-radius:50%;background:#6B6659;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">R</div><div class="grow"><div style="font-size:13px;font-weight:600">Rui</div><div class="small">Hasn't checked in yet</div></div><div style="width:17px;height:17px;border-radius:50%;border:1.5px dashed var(--dot)"></div></div>
       </div>
-
-      <div style="font-size: 12px; color: var(--faint); margin-bottom: 10px;">From your reflections</div>
-      <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px;">
-        <a class="btn-outline" style="height: 46px;" onclick="showToast('CV summary generated')">Generate CV summary</a>
-        <a class="btn-outline" style="height: 46px;" onclick="showToast('LinkedIn post drafted')">Draft a LinkedIn post</a>
-      </div>
-
-      <div style="font-size: 12px; color: var(--faint); margin-bottom: 10px;">Settings</div>
-      <div style="display: flex; flex-direction: column; gap: 1px; background: var(--border); border-radius: 12px; overflow: hidden; border: 1px solid var(--border);">
-        <div style="display: flex; justify-content: space-between; align-items: center; background: #FFFFFF; padding: 13px 14px;">
-          <span style="font-size: 14px;">Reminder frequency</span>
-          <span style="font-size: 13px; color: var(--faint);">Weekly ›</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; background: #FFFFFF; padding: 13px 14px;">
-          <span style="font-size: 14px;">Personal &amp; School data</span>
-          <span style="font-size: 13px; color: var(--faint);">Manage ›</span>
-        </div>
-      </div>
-
-      <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center;">
-        <svg width="132" height="66" viewBox="0 0 110 55" fill="none" aria-hidden="true" style="opacity: 0.55;"><path d="M13 22Q32 0 51 22" stroke="#2B2A25" stroke-width="1.7" stroke-linecap="round"/><ellipse cx="32" cy="22" rx="19" ry="5" stroke="#2B2A25" stroke-width="1.7"/><path d="M15 23L23 49" stroke="#2B2A25" stroke-width="1.7" stroke-linecap="round"/><path d="M49 23L41 49" stroke="#2B2A25" stroke-width="1.7" stroke-linecap="round"/><path d="M23 49Q32 53 41 49" stroke="#2B2A25" stroke-width="1.7" stroke-linecap="round"/><path d="M18 33Q32 36 46 33" stroke="#2B2A25" stroke-width="1.2" opacity="0.55"/><path d="M77 2L93 2" stroke="#2B2A25" stroke-width="1.8" stroke-linecap="round"/><path d="M85 2V33" stroke="#2B2A25" stroke-width="1.8" stroke-linecap="round"/><circle cx="85" cy="39" r="11" stroke="#2B2A25" stroke-width="1.8"/><circle cx="81" cy="41" r="1.2" fill="#2B2A25"/><circle cx="89" cy="41" r="1.2" fill="#2B2A25"/></svg>
-      </div>
+      <label class="small" style="margin-bottom:6px;display:block">Invite someone to your crew</label>
+      <div style="display:flex;gap:8px"><input type="text" placeholder="Search by name" style="flex:1;height:42px;border:1px solid var(--border);border-radius:12px;padding:0 14px;font-size:14px;background:#fff"><a style="display:flex;align-items:center;justify-content:center;width:64px;height:42px;background:var(--accent);color:#fff;border-radius:12px;font-size:13px;font-weight:600" onclick="toast('Invite sent')">Add</a></div>
+      <div class="grow filler"></div>
+      <a class="btn-outline" onclick="go('home')">Back to home</a>
     </div>
   </section>
 
+  <!-- 13 PROFILE -->
+  <section class="screen" id="profile" data-label="13 · Profile">
+    <div class="col">
+      <div class="topbar"><a class="backbtn" onclick="back()" aria-label="Back"><span class="ico" data-ico="back" data-size="18"></span></a><h1>Profile</h1></div>
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+        <div style="width:54px;height:54px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700">A</div>
+        <div><div style="font-size:17px;font-weight:700">Alex</div><div class="small" style="font-size:13px">Year 2 · Business Studies</div></div>
+      </div>
+      <div class="small" style="margin-bottom:8px">From your reflections</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px">
+        <a class="btn-outline" style="height:44px" onclick="toast('CV summary generated')">Generate CV summary</a>
+        <a class="btn-outline" style="height:44px" onclick="toast('LinkedIn post drafted')">Draft a LinkedIn post</a>
+      </div>
+      <div class="small" style="margin-bottom:8px">Settings</div>
+      <div style="display:flex;flex-direction:column;gap:1px;background:var(--border);border-radius:12px;overflow:hidden;border:1px solid var(--border)">
+        <a onclick="toast('Reminders are set by Sandbox. Snooze options come later.')" style="display:flex;justify-content:space-between;align-items:center;background:#fff;padding:13px 14px"><span style="font-size:14px">Reminders</span><span class="small" style="font-size:13px">Every 2 weeks ›</span></a>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:#fff;padding:10px 14px"><span style="font-size:14px">AI follow-up questions</span><label class="sw"><input type="checkbox" id="aiToggle2" checked onchange="setAi(this.checked)"><span></span></label></div>
+        <a onclick="go('consent')" style="display:flex;justify-content:space-between;align-items:center;background:#fff;padding:13px 14px"><span style="font-size:14px">Who can see my reflections</span><span class="small" style="font-size:13px">View ›</span></a>
+        <a onclick="openLegend()" style="display:flex;justify-content:space-between;align-items:center;background:#fff;padding:13px 14px"><span style="font-size:14px">What the 8 skills mean</span><span class="small" style="font-size:13px">View ›</span></a>
+        <a onclick="go('support')" style="display:flex;justify-content:space-between;align-items:center;background:#fff;padding:13px 14px"><span style="font-size:14px">Need to talk to someone?</span><span class="small" style="font-size:13px">Open ›</span></a>
+      </div>
+      <div class="grow filler"></div>
+    </div>
+  </section>
+
+  <!-- 14 EVENT FLAG -->
+  <section class="screen" id="eventflag" data-label="14 · Flag an upcoming event">
+    <div class="col">
+      <div class="topbar"><a class="backbtn" onclick="back()" aria-label="Back"><span class="ico" data-ico="back" data-size="18"></span></a><h1>Something coming up?</h1></div>
+      <p style="margin:0 0 16px;font-size:14px;line-height:1.55;color:var(--muted)">Tell us about an interview, pitch, competition or project deadline. We'll help you get ready and reflect afterwards.</p>
+      <label style="font-size:13px;font-weight:600;margin-bottom:6px;display:block">What is it?</label>
+      <input type="text" id="evName" placeholder="e.g. Internship interview" style="width:100%;height:44px;border:1px solid var(--border);border-radius:12px;padding:0 14px;font-size:14px;background:#fff;margin-bottom:14px">
+      <label style="font-size:13px;font-weight:600;margin-bottom:6px;display:block">When?</label>
+      <input type="date" id="evDate" style="width:100%;height:44px;border:1px solid var(--border);border-radius:12px;padding:0 14px;font-size:14px;background:#fff;margin-bottom:16px">
+      <label style="display:flex;gap:10px;align-items:center;margin-bottom:10px;font-size:14px"><input type="checkbox" checked style="width:18px;height:18px;accent-color:var(--accent)"> Ask me a question before</label>
+      <label style="display:flex;gap:10px;align-items:center;margin-bottom:10px;font-size:14px"><input type="checkbox" checked style="width:18px;height:18px;accent-color:var(--accent)"> Remind me to reflect afterwards</label>
+      <div class="grow filler"></div>
+      <a class="btn-primary" onclick="saveEvent()">Save event</a>
+    </div>
+  </section>
+
+  <!-- 15 SUPPORT -->
+  <section class="screen" id="support" data-label="15 · Need to talk to someone?">
+    <div class="col">
+      <div class="topbar"><a class="backbtn" onclick="back()" aria-label="Back"><span class="ico" data-ico="back" data-size="18"></span></a><h1>Need to talk to someone?</h1></div>
+      <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:var(--muted)">If things feel heavy, you don't have to carry them alone. There are people at NP whose job is to listen.</p>
+      <div class="card" style="margin-bottom:12px"><div style="font-size:15px;font-weight:600;margin-bottom:4px">NP Student Wellbeing</div><div style="font-size:13px;line-height:1.6;color:var(--muted)">Contact details to come.</div><div class="small" style="margin-top:8px;font-style:italic">Prototype placeholder: Sandbox to confirm which NP service this points to.</div></div>
+      <div class="grow filler"></div>
+      <a class="btn-outline" onclick="back()">Back</a>
+    </div>
+  </section>
+
+  <div class="scrim" id="scrim" onclick="closeLegend()"></div>
+  <div class="sheet" id="legend">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><h1 style="margin:0;font-size:20px">The 8 skills</h1><a onclick="closeLegend()" aria-label="Close" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center"><span class="ico" data-ico="close" data-size="16"></span></a></div>
+    <p class="small" style="margin:0 0 8px;font-size:13px">What each skill in your growth web means.</p>
+    <div id="legendRows"></div>
+    <div class="small" style="margin-top:10px;font-style:italic">Wording to be confirmed by Adrian.</div>
+  </div>
+  <div class="toast" id="toast"><span id="toastText"></span></div>
 </div></div>
-<div class="toast" id="toast">✓ <span id="toastText">Saved</span></div>
 </div>
 
-<!-- ============ SANDBOX / ADVISOR DATA VIEW (outside the phone frame) ============ -->
-<div class="dataview" id="dataView">
-
-  <div class="dv-card">
-    <h2 style="margin: 0 0 6px; font-size: 20px;">Reflection data</h2>
-    <p style="margin: 0 0 16px; font-size: 13px; color: var(--muted);">A simplified look at what Sandbox and CCA advisors would see. This is <b>not</b> part of the student experience — students never see this screen. All names and entries below are sample data for illustration only.</p>
-
-    <div class="seg" style="max-width: 420px; margin-bottom: 16px;" id="scopeSeg">
-      <button class="active" onclick="setDataScope('all', this)">Sandbox (all schools)</button>
-      <button onclick="setDataScope('robotics', this)">Advisor — Robotics Club only</button>
-    </div>
-
-    <div style="overflow-x: auto;">
-      <table class="dv-table" id="dataTable">
-        <thead>
-          <tr><th>Student</th><th>School</th><th>CCA</th><th>Date</th><th>Activity</th><th>Mode</th><th>Key traits (1–7)</th></tr>
-        </thead>
-        <tbody id="dataTableBody"></tbody>
-      </table>
-    </div>
-
-    <div style="margin-top: 16px; display: flex; align-items: center; gap: 12px;">
-      <button onclick="exportCSV()" style="display: flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 12px; background: var(--accent); color: #fff; border: none; font-size: 13px; font-weight: 600;">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Export visible rows as CSV
-      </button>
-      <span style="font-size: 12px; color: var(--faint);">Downloads exactly what's shown above — this really works, try it</span>
-    </div>
-  </div>
-
-  <div class="dv-card">
-    <h2 style="margin: 0 0 6px; font-size: 18px;">The 8 E-Bar traits</h2>
-    <p style="margin: 0 0 14px; font-size: 13px; color: var(--muted);">Reference table — what the "Key traits" column above is scoring against.</p>
-    <table class="dv-table">
-      <thead><tr><th style="width: 22%;">Trait</th><th>What it measures</th></tr></thead>
-      <tbody>
-        <tr><td><b>Collaboration</b></td><td>Enjoys working with others toward shared goals</td></tr>
-        <tr><td><b>Networking</b></td><td>Builds and maintains relationships that create opportunities</td></tr>
-        <tr><td><b>Innovation</b></td><td>Generates creative solutions, explores new approaches</td></tr>
-        <tr><td><b>Goal Orientation</b></td><td>Sets clear goals and follows through</td></tr>
-        <tr><td><b>Opportunity Spotting</b></td><td>Notices chances where others see obstacles</td></tr>
-        <tr><td><b>Calculated Risk-Taking</b></td><td>Takes risks after genuinely weighing outcomes</td></tr>
-        <tr><td><b>Resilience</b></td><td>Persists through setbacks, learns from failure</td></tr>
-        <tr><td><b>Resourcefulness</b></td><td>Makes the most of whatever's available</td></tr>
-      </tbody>
-    </table>
-  </div>
-
+<!-- STAFF VIEW (same app, staff role) -->
+<div class="stage" id="staffStage" style="display:none;flex-direction:column;align-items:center;gap:14px">
+<div class="phone"><div class="phone-screen" id="svPhone">
+  <section class="screen active" id="svScreen" style="padding-bottom:70px"><div class="col" id="svBody" style="padding:18px 18px 24px"></div></section>
+  <nav class="sv-nav" id="svNav">
+    <button data-t="overview" onclick="svTab('overview')"><span>▦</span>Overview</button>
+    <button data-t="students" onclick="svTab('students')"><span>☰</span>Students</button>
+    <button data-t="export" onclick="svTab('export')"><span>⇩</span>Export</button>
+  </nav>
+  <div class="scrim" id="svScrim" onclick="svCloseSheet()"></div>
+  <div class="sheet" id="svSheet" style="top:auto;max-height:78%"></div>
+  <div class="toast" id="svToast"><span id="svToastText"></span></div>
+</div></div>
+<div class="small" style="max-width:420px;text-align:center;line-height:1.5">Staff use the same NP Reflect app on their phone. Signing in with an NP staff account shows these screens instead of the student ones. There is no website; detailed data leaves only as a CSV file. All names and numbers are sample data.</div>
 </div>
 
 <script>
-  // ---------- Screen navigation ----------
-  function showScreen(id) {
-    document.querySelectorAll('.screen').forEach(function(el) { el.classList.remove('active'); });
-    var target = document.getElementById(id);
-    target.classList.add('active');
-    document.getElementById('currentLabel').textContent = target.getAttribute('data-label');
-    document.querySelector('.phone-screen').scrollTop = 0;
-  }
+/* ---------- constants ---------- */
+var TRAITS=[
+ ["Collaboration","Enjoys working with others toward shared goals."],
+ ["Networking","Builds and keeps relationships that open doors."],
+ ["Innovation","Comes up with creative ideas and new ways of doing things."],
+ ["Goal Orientation","Sets clear goals and follows through."],
+ ["Opportunity Spotting","Notices chances where others see obstacles."],
+ ["Calculated Risk-Taking","Takes risks after weighing the outcomes."],
+ ["Resilience","Keeps going after setbacks and learns from them."],
+ ["Resourcefulness","Makes the most of whatever is available."]];
+var LBL=[["Collaboration"],["Networking"],["Innovation"],["Goal","Orientation"],["Opportunity","Spotting"],["Calculated","Risk-Taking"],["Resilience"],["Resourcefulness"]];
+var DELTA=[1,1,1,1,1,1,2,1];
+var state={offline:false,queue:0,aiOk:true,reflections:12,streak:5,checkedIn:false,upcoming:null,
+  baseline:[3,3,4,3,2,3,4,3],now:[4,4,5,4,3,4,6,4],rateMode:'baseline',draft:[],lastText:''};
+var hist=[]; var current='welcome';
 
-  function toggleView(view) {
-    var studentStage = document.getElementById('studentStage');
-    var dataView = document.getElementById('dataView');
-    var sBtn = document.getElementById('viewStudentBtn');
-    var dBtn = document.getElementById('viewDataBtn');
-    if (view === 'student') {
-      studentStage.style.display = 'flex';
-      dataView.classList.remove('active');
-      sBtn.classList.add('active'); dBtn.classList.remove('active');
-    } else {
-      studentStage.style.display = 'none';
-      dataView.classList.add('active');
-      dBtn.classList.add('active'); sBtn.classList.remove('active');
+/* ---------- icons ---------- */
+var BASE="M4 20L4 15L6 15L6 12L8 12L8 15L10 15L10 10L14 10L14 15L16 15L16 12L18 12L18 15L20 15L20 20Z";
+function castleSVG(level,size,color){
+  var s='<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" aria-hidden="true">';
+  if(level>=3) s+='<path d="M2 20.5C4 19.7 6 19.7 8 20.5C10 19.7 14 19.7 16 20.5C18 19.7 20 19.7 22 20.5" stroke="'+color+'" stroke-width="1.1" opacity=".55"/>';
+  s+='<path d="'+BASE+'" stroke="'+color+'" stroke-width="1.6" stroke-linejoin="round"/>';
+  if(level>=2) s+='<path d="M12 10V5M12 5L16 6.5L12 8" stroke="'+color+'" stroke-width="1.6" stroke-linejoin="round"/>';
+  if(level>=3) s+='<path d="M7 12V9.2M7 9.2L9.2 10.2L7 11.2" stroke="'+color+'" stroke-width="1.4" stroke-linejoin="round"/><path d="M17 12V9.2M17 9.2L19.2 10.2L17 11.2" stroke="'+color+'" stroke-width="1.4" stroke-linejoin="round"/>';
+  return s+'</svg>';
+}
+var ICONS={
+ back:'<path d="M15 6L9 12L15 18" stroke="C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+ close:'<path d="M6 6l12 12M18 6L6 18" stroke="C" stroke-width="1.8" stroke-linecap="round"/>',
+ text:'<path d="M4 6h16M4 12h16M4 18h10" stroke="C" stroke-width="1.8" stroke-linecap="round"/>',
+ mic:'<rect x="9" y="3" width="6" height="11" rx="3" stroke="C" stroke-width="1.8"/><path d="M6 11a6 6 0 0 0 12 0M12 17v3" stroke="C" stroke-width="1.8" stroke-linecap="round"/>',
+ cam:'<rect x="9" y="4" width="6" height="3.5" rx="1" stroke="C" stroke-width="1.8"/><rect x="3" y="7.5" width="18" height="12.5" rx="3" stroke="C" stroke-width="1.8"/><circle cx="12" cy="14" r="3.3" stroke="C" stroke-width="1.8"/>',
+ pencil:'<path d="M6 21L10 17M10 17L17 10C18 9 18 7.5 17 6.5C16 5.5 14.5 5.5 13.5 6.5L6.5 13.5C5.5 14.5 5.5 16 6.5 17C7.5 18 9 18 10 17Z" stroke="C" stroke-width="1.7" stroke-linejoin="round"/><path d="M4 21H8" stroke="C" stroke-width="1.7" stroke-linecap="round"/>',
+ bucket:'<path d="M8 12V9.5C8 8.4 8.9 7.5 10 7.5H14C15.1 7.5 16 8.4 16 9.5V12" stroke="C" stroke-width="1.7"/><path d="M6 12H18L16.5 20H7.5L6 12Z" stroke="C" stroke-width="1.7" stroke-linejoin="round"/><path d="M17.5 5L21 4L20 7.5" stroke="C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
+ check:'<path d="M5 13l4 4L19 7" stroke="C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>',
+ eye:'<path d="M2 12C5 7 9 5 12 5s7 2 10 7c-3 5-7 7-10 7S5 17 2 12Z" stroke="C" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="C" stroke-width="1.8"/>',
+ cal:'<rect x="3.5" y="5" width="17" height="15" rx="2.5" stroke="#003C77" stroke-width="1.8"/><path d="M3.5 10h17M8 3v4M16 3v4" stroke="#003C77" stroke-width="1.8" stroke-linecap="round"/>'
+};
+function iconSVG(name,size,color){return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" aria-hidden="true">'+ICONS[name].replace(/C"/g,color+'"')+'</svg>';}
+var FILLER='<svg width="132" height="66" viewBox="0 0 110 55" fill="none" aria-hidden="true" style="opacity:.55"><path d="M13 22Q32 0 51 22" stroke="#2B2A25" stroke-width="1.7" stroke-linecap="round"/><ellipse cx="32" cy="22" rx="19" ry="5" stroke="#2B2A25" stroke-width="1.7"/><path d="M15 23L23 49" stroke="#2B2A25" stroke-width="1.7" stroke-linecap="round"/><path d="M49 23L41 49" stroke="#2B2A25" stroke-width="1.7" stroke-linecap="round"/><path d="M23 49Q32 53 41 49" stroke="#2B2A25" stroke-width="1.7" stroke-linecap="round"/><path d="M18 33Q32 36 46 33" stroke="#2B2A25" stroke-width="1.2" opacity=".55"/><path d="M77 2L93 2" stroke="#2B2A25" stroke-width="1.8" stroke-linecap="round"/><path d="M85 2V33" stroke="#2B2A25" stroke-width="1.8" stroke-linecap="round"/><circle cx="85" cy="39" r="11" stroke="#2B2A25" stroke-width="1.8"/><circle cx="81" cy="41" r="1.2" fill="#2B2A25"/><circle cx="89" cy="41" r="1.2" fill="#2B2A25"/></svg>';
+
+/* ---------- radar chart (two series) ---------- */
+function radarSVG(series,width,aria){
+  var cx=200,cy=190,R=100;
+  function pt(i,r){var a=(-90+45*i)*Math.PI/180;return [cx+r*Math.cos(a),cy+r*Math.sin(a)];}
+  function ring(f){var p=[];for(var i=0;i<8;i++){var q=pt(i,R*f);p.push(q[0].toFixed(1)+','+q[1].toFixed(1));}return p.join(' ');}
+  var s='<svg viewBox="0 0 400 390" width="'+width+'" role="img" aria-label="'+aria+'">';
+  [1/3,2/3,1].forEach(function(f){s+='<polygon points="'+ring(f)+'" fill="none" stroke="#E3DECF" stroke-width="1"/>';});
+  for(var i=0;i<8;i++){var q=pt(i,R);s+='<line x1="'+cx+'" y1="'+cy+'" x2="'+q[0].toFixed(1)+'" y2="'+q[1].toFixed(1)+'" stroke="#E3DECF"/>';}
+  series.forEach(function(se){
+    var p=se.values.map(function(v,i){var q=pt(i,R*v/7);return q[0].toFixed(1)+','+q[1].toFixed(1);}).join(' ');
+    s+='<polygon points="'+p+'" fill="'+se.color+'" fill-opacity="'+se.fillOp+'" stroke="'+se.color+'" stroke-width="3"'+(se.dash?' stroke-dasharray="9 6"':'')+' stroke-linejoin="round"/>';
+  });
+  for(var j=0;j<8;j++){
+    var a=(-90+45*j)*Math.PI/180,c=Math.cos(a),sn=Math.sin(a),lp=pt(j,R+16),lines=LBL[j];
+    var anchor=c>0.3?'start':(c<-0.3?'end':'middle');
+    var y0=lp[1]+(sn<-0.5?-((lines.length-1)*15)-2:(sn>0.5?12:4-(lines.length-1)*7));
+    s+='<text x="'+lp[0].toFixed(1)+'" y="'+y0.toFixed(1)+'" text-anchor="'+anchor+'" font-size="14" fill="#4A4638" font-family="-apple-system,Segoe UI,sans-serif">';
+    lines.forEach(function(t,k){s+='<tspan x="'+lp[0].toFixed(1)+'" dy="'+(k===0?0:15)+'">'+t+'</tspan>';});
+    s+='</text>';
+  }
+  return s+'</svg>';
+}
+var ORANGE='#E8772E',GREEN='#2E7D32';
+function twoWebs(w,aria){return radarSVG([{values:state.baseline,color:ORANGE,fillOp:.12,dash:true},{values:state.now,color:GREEN,fillOp:.22,dash:false}],w,aria);}
+function renderCharts(){
+  document.getElementById('tourChart').innerHTML=radarSVG([{values:[3,3,4,3,2,3,4,3],color:ORANGE,fillOp:.12,dash:true},{values:[4,4,5,4,3,4,6,4],color:GREEN,fillOp:.22,dash:false}],335,'Example growth web: when you started versus now');
+  document.getElementById('growthChart').innerHTML=twoWebs(330,'Your growth web: when you started versus now');
+  document.getElementById('summaryChart').innerHTML=twoWebs(300,'Your growth web at the start of term versus now');
+  var d=state.now.map(function(v,i){return {i:i,d:v-state.baseline[i],v:v};});
+  var grew=d.slice().sort(function(a,b){return b.d-a.d||a.i-b.i;}).slice(0,2).map(function(x){return TRAITS[x.i][0];});
+  var work=d.slice().sort(function(a,b){return a.v-b.v||a.i-b.i;}).slice(0,2).map(function(x){return TRAITS[x.i][0];});
+  document.getElementById('gTop').textContent=grew[0];
+  document.getElementById('gRefl').textContent=state.reflections;
+  document.getElementById('sGrew').textContent=grew.join(' and ');
+  document.getElementById('sWork').textContent=work.join(' and ');
+  var few=state.reflections<3;
+  document.getElementById('sBasis').textContent='Based on '+state.reflections+(state.reflections===1?' reflection':' reflections')+(few?' so far, so this is a rough picture. It gets clearer as you add more.':'.');
+}
+
+/* ---------- hydrate placeholders ---------- */
+function hydrate(){
+  document.querySelectorAll('.castle').forEach(function(el){el.innerHTML=castleSVG(+el.dataset.level,+el.dataset.size,el.dataset.color||'#003C77');});
+  document.querySelectorAll('.ico').forEach(function(el){el.innerHTML=iconSVG(el.dataset.ico,+el.dataset.size,el.dataset.color||'#2B2A25');});
+  document.querySelectorAll('.filler').forEach(function(el){el.style.display='flex';el.style.alignItems='center';el.style.justifyContent='center';el.innerHTML=FILLER;});
+  var lr=document.getElementById('legendRows');
+  lr.innerHTML=TRAITS.map(function(t){return '<div style="padding:10px 0;border-bottom:1px solid var(--border)"><div style="font-size:14px;font-weight:700">'+t[0]+'</div><div style="font-size:13px;color:var(--muted);margin-top:2px">'+t[1]+'</div></div>';}).join('');
+  renderCharts();
+}
+
+/* ---------- navigation ---------- */
+function go(id,noPush){
+  document.getElementById('toast').classList.remove('show');
+  if(!noPush && current!==id) hist.push(current);
+  current=id;
+  document.querySelectorAll('.screen').forEach(function(el){el.classList.remove('active');});
+  var t=document.getElementById(id); t.classList.add('active'); t.scrollTop=0;
+  document.getElementById('currentLabel').textContent=t.getAttribute('data-label');
+  if(id==='growth'||id==='summary') renderCharts();
+  if(id==='streaks') renderStreaks();
+  if(id==='home') updateHome();
+}
+function back(){ var p=hist.pop(); go(p||'home',true); }
+function restart(){
+  hist=[]; state.baseline=[3,3,4,3,2,3,4,3]; state.now=[4,4,5,4,3,4,6,4]; state.reflections=12; state.streak=5; state.checkedIn=false; state.queue=0; state.upcoming=null;
+  document.getElementById('agree').checked=false; syncAgree(); tourIdx=0; tourShow(); resetReflect(); go('welcome',true); toggleView('student');
+}
+function toast(t){var el=document.getElementById('toast');document.getElementById('toastText').textContent=t;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(function(){el.classList.remove('show');},2200);}
+function openLegend(){document.getElementById('legend').classList.add('open');document.getElementById('scrim').classList.add('open');}
+function closeLegend(){document.getElementById('legend').classList.remove('open');document.getElementById('scrim').classList.remove('open');}
+
+/* ---------- tour ---------- */
+var tourIdx=0;
+function startTour(){tourIdx=0;tourShow();go('tour');}
+function tourShow(){
+  for(var i=0;i<3;i++) document.getElementById('ts'+i).style.display=(i===tourIdx)?'block':'none';
+  document.querySelectorAll('#tourDots i').forEach(function(d,i){d.classList.toggle('on',i===tourIdx);});
+  document.getElementById('tourCount').textContent=(tourIdx+1)+' of 3';
+  document.getElementById('tourPrev').style.display=tourIdx>0?'flex':'none';
+  document.getElementById('tourNext').textContent=tourIdx<2?'Next':'Got it — continue';
+}
+function tourStep(d){ if(d>0&&tourIdx===2){go('consent');return;} tourIdx=Math.max(0,Math.min(2,tourIdx+d)); tourShow(); }
+
+/* ---------- consent ---------- */
+function syncAgree(){document.getElementById('consentBtn').classList.toggle('disabled',!document.getElementById('agree').checked);}
+function consentNext(){ if(!document.getElementById('agree').checked){toast('Please tick the box to continue');return;} if(hist[hist.length-1]==='tour'){go('events');} else {back();} }
+function setAi(v){state.aiOk=v;document.getElementById('aiToggle').checked=v;document.getElementById('aiToggle2').checked=v;}
+
+/* ---------- ratings ---------- */
+function startRate(mode){
+  state.rateMode=mode; state.draft=[null,null,null,null,null,null,null,null];
+  var base=mode==='baseline';
+  document.getElementById('rateTitle').textContent=base?'Your starting point':'Quick check';
+  document.getElementById('rateSub').textContent=base?'How much does each of these sound like you right now? There are no right answers.':'Thinking about this experience, how much did it help you grow each skill?';
+  document.getElementById('rateEnds').textContent=base?'1 = not like me · 7 = very like me':'1 = not at all · 7 = a lot';
+  var rows=TRAITS.map(function(t,i){
+    var chips='';for(var v=1;v<=7;v++) chips+='<button class="chip" data-i="'+i+'" data-v="'+v+'" onclick="pickRating('+i+','+v+')">'+v+'</button>';
+    return '<div><div style="font-size:14px;font-weight:700">'+t[0]+'</div><div class="small">'+t[1]+'</div><div class="chips" id="chips'+i+'">'+chips+'</div></div>';
+  }).join('');
+  document.getElementById('rateRows').innerHTML=rows;
+  go('rate');
+}
+function pickRating(i,v){state.draft[i]=v;document.querySelectorAll('#chips'+i+' .chip').forEach(function(c){c.classList.toggle('on',+c.dataset.v===v);});}
+function saveRatings(){
+  var d=state.draft;
+  if(state.rateMode==='baseline'){
+    state.baseline=state.baseline.map(function(x,i){return d[i]||x;});
+    state.now=state.baseline.map(function(v,i){return Math.min(7,v+DELTA[i]);});
+    hist=[]; go('home',true); toast('Welcome, Alex. Your starting web is saved');
+  } else {
+    state.now=state.now.map(function(x,i){return d[i]||x;});
+    finishFlow('Saved. Your growth web updated');
+  }
+}
+function skipRatings(){ if(state.rateMode==='baseline'){hist=[];go('home',true);} else finishFlow('Reflection saved'); }
+
+/* ---------- home ---------- */
+function updateHome(){
+  document.getElementById('homeStreak').textContent=state.streak;
+  var q=document.getElementById('queuePill');
+  if(state.queue>0){q.style.display='block';q.textContent='○ '+state.queue+' waiting to send — will go when you\'re online';} else q.style.display='none';
+  var u=document.getElementById('upcomingCard');
+  if(state.upcoming){u.style.display='block';u.innerHTML='<div class="small" style="margin-bottom:4px">Coming up</div><div style="font-size:14px;font-weight:600">'+state.upcoming.name+(state.upcoming.date?' · '+fmtDate(state.upcoming.date):'')+'</div><div class="small" style="margin-top:4px">We\'ll check in before and after.</div>';} else u.style.display='none';
+}
+function fmtDate(d){var x=new Date(d+'T00:00:00');return isNaN(x)?d:x.toLocaleDateString('en-GB',{day:'numeric',month:'short'});}
+function saveEvent(){
+  var n=document.getElementById('evName').value.trim();
+  if(!n){toast('Add a name for the event');return;}
+  state.upcoming={name:n,date:document.getElementById('evDate').value};
+  back(); toast('Event saved. We\'ll prompt you');
+}
+function toggleOffline(){
+  state.offline=!state.offline;
+  document.getElementById('phoneScreen').classList.toggle('offline',state.offline);
+  var b=document.getElementById('offlineBtn');
+  b.textContent=state.offline?'○ Offline':'● Online'; b.classList.toggle('warn',state.offline);
+  if(!state.offline&&state.queue>0){var n=state.queue;state.queue=0;toast('Back online. Sent '+n+' '+(n>1?'entries':'entry'));}
+  updateHome();
+}
+
+/* ---------- reflect ---------- */
+function startReflect(mode){go('reflect');setInputMode(mode);}
+function setInputMode(mode,btnEl){
+  document.querySelectorAll('#modeSeg button').forEach(function(b){b.classList.remove('active');});
+  var btn=btnEl||Array.prototype.find.call(document.querySelectorAll('#modeSeg button'),function(b){return b.textContent.toLowerCase()===mode;});
+  if(btn) btn.classList.add('active');
+  document.querySelectorAll('.mm-panel').forEach(function(p){p.classList.remove('active');});
+  document.getElementById('panel-'+mode).classList.add('active');
+  document.getElementById('promptModeWrap').style.display=(mode==='text')?'block':'none';
+  state.mode=mode;
+}
+function setPromptMode(m,btn){
+  document.querySelectorAll('#promptSeg button').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');
+  document.getElementById('guidedFields').style.display=m==='guided'?'block':'none';
+  document.getElementById('freeField').style.display=m==='free'?'block':'none';
+  state.prompt=m;
+}
+var recording=false,recSec=0,recTimer=null;
+function toggleRecording(){
+  var btn=document.getElementById('recBtn'),st=document.getElementById('recStatus');
+  recording=!recording;
+  if(recording){btn.classList.add('recording');recSec=0;st.textContent='Recording… 0:00';
+    recTimer=setInterval(function(){recSec++;st.textContent='Recording… '+Math.floor(recSec/60)+':'+('0'+(recSec%60)).slice(-2);},1000);}
+  else{btn.classList.remove('recording');clearInterval(recTimer);st.textContent='Tap to record again';
+    document.getElementById('transcriptWrap').style.display='block';
+    var t=document.getElementById('transcript'); if(!t.value) t.value="Pitched our idea to the panel today. I froze for a bit when they pushed back on the pricing model, but I recovered and answered it directly.";}
+}
+function handlePhoto(e){
+  var f=e.target.files[0]; if(!f) return;
+  var r=new FileReader();
+  r.onload=function(ev){document.getElementById('photoPreview').src=ev.target.result;document.getElementById('photoPlaceholder').style.display='none';document.getElementById('photoResult').style.display='block';
+    document.getElementById('ocrWrap').style.display='block';var o=document.getElementById('ocrText'); if(!o.value) o.value="Group project meeting went badly. We argued about who does what. I realised I should speak up earlier next time.";};
+  r.readAsDataURL(f);
+}
+function reflectionText(){
+  var m=state.mode||'text', v='';
+  if(m==='text') v=(state.prompt==='free')?document.getElementById('ff').value:(document.getElementById('gf1').value+' '+document.getElementById('gf2').value);
+  else if(m==='voice') v=document.getElementById('transcript').value;
+  else v=document.getElementById('ocrText').value;
+  v=v.trim(); return v||'Pitched our idea to the panel today. I froze for a bit when they pushed back on the pricing model, but I recovered.';
+}
+function pickQuestion(t){
+  t=t.toLowerCase();
+  if(/froze|nervous|anxious|scared|panic/.test(t)) return 'You mentioned feeling nervous. What helped you keep going?';
+  if(/team|group|conflict|argu/.test(t)) return 'What did this teach you about working with others?';
+  if(/fail|lost|mistake|setback|didn.t work/.test(t)) return 'What would you do differently next time, and what would you keep?';
+  if(/won|proud|success|worked/.test(t)) return 'What do you think made this work?';
+  return 'What is one thing about this moment you would want to remember?';
+}
+function submitReflection(){
+  var t=reflectionText(); state.lastText=t; state.reflections++;
+  var levelUp=false; if(!state.checkedIn){state.checkedIn=true;state.streak++;levelUp=(state.streak===6);}
+  state.levelUp=levelUp;
+  if(state.offline){ state.queue++; toast('Saved on your phone. Will send when online'); startRate('post'); return; }
+  if(state.aiOk){
+    document.getElementById('fuSnippet').textContent='“'+(t.length>150?t.slice(0,150)+'…':t)+'”';
+    document.getElementById('fuQuestion').textContent=pickQuestion(t);
+    go('followup');
+  } else startRate('post');
+}
+function afterFollowup(){ startRate('post'); }
+function finishFlow(msg){
+  resetReflect(); hist=[]; go('home',true);
+  setTimeout(function(){toast(state.levelUp?'Castle level 3 unlocked! '+msg:msg);state.levelUp=false;},200);
+}
+function resetReflect(){
+  ['gf1','gf2','ff','transcript','ocrText'].forEach(function(i){document.getElementById(i).value='';});
+  document.getElementById('transcriptWrap').style.display='none';document.getElementById('ocrWrap').style.display='none';
+  document.getElementById('photoResult').style.display='none';document.getElementById('photoPlaceholder').style.display='block';
+  document.getElementById('photoInput').value='';
+  state.mode='text';state.prompt='guided';
+  var mb=document.querySelectorAll('#modeSeg button');mb.forEach(function(b,i){b.classList.toggle('active',i===0);});
+  document.querySelectorAll('.mm-panel').forEach(function(p){p.classList.remove('active');});document.getElementById('panel-text').classList.add('active');
+  document.getElementById('promptModeWrap').style.display='block';
+  var pb=document.querySelectorAll('#promptSeg button');pb.forEach(function(b,i){b.classList.toggle('active',i===0);});
+  document.getElementById('guidedFields').style.display='block';document.getElementById('freeField').style.display='none';
+}
+
+/* ---------- streaks & milestones ---------- */
+function renderStreaks(){
+  var s=state.streak, lvl=s>=6?3:(s>=3?2:1);
+  document.getElementById('streakCastle').innerHTML=castleSVG(lvl,60,'#C9861A');
+  document.getElementById('streakNum').textContent=s;
+  var dots='';for(var i=1;i<=6;i++){var done=i<=Math.min(s,6);dots+='<div style="width:30px;height:30px;border-radius:50%;'+(done?'background:var(--accent)':'border:1.5px dashed var(--dot)')+';display:flex;align-items:center;justify-content:center">'+(done?iconSVG('check',13,'#fff'):'')+'</div>';}
+  document.getElementById('streakDots').innerHTML=dots;
+  function rung(done,cur,badge,title,sub,draft){
+    var bg=done?'background:var(--accent);color:#fff':(cur?'background:rgba(255,166,38,.25);color:var(--gold-text)':'background:var(--card-alt);color:var(--faint)');
+    return '<div class="rung"><div class="badge" style="'+bg+'">'+badge+'</div><div class="grow"><div style="font-size:14px;font-weight:600">'+title+(draft?'<span class="tag-draft">Draft</span>':'')+'</div><div class="small">'+sub+'</div></div></div>';
+  }
+  var h='';
+  h+=rung(s>=1,false,'1','First check-in','Castle level 1',false);
+  h+=rung(s>=3,s<3,'2','3 check-ins in a row','Castle level 2',false);
+  h+=rung(s>=6,s>=3&&s<6,'3','6 check-ins in a row','Castle level 3'+(s<6?' · '+(6-s)+' to go':''),false);
+  h+=rung(false,s>=6,'$','Every check-in this semester','$5 canteen voucher',true);
+  h+=rung(false,false,'2×','Whole crew checks in','Double entries into the lucky draw',true);
+  document.getElementById('ladder').innerHTML=h;
+}
+
+/* ---------- Staff views: CCA advisor and Sandbox team ---------- */
+var SV_TR=['Collaboration','Networking','Innovation','Goal Orientation','Opportunity Spotting','Calculated Risk-Taking','Resilience','Resourcefulness'];
+var SV_STUDENTS=[
+ {id:'S-0101',name:'Farid K.',school:'Engineering, Year 1',cca:'Robotics Club',last:'8 Nov',count:11,streak:5,flag:0,start:[3,2,3,3,2,3,4,3],now:[4,3,4,4,3,4,6,4],set:'r'},
+ {id:'S-0102',name:'Darius W.',school:'Engineering, Year 2',cca:'Robotics Club',last:'5 Nov',count:8,streak:2,flag:2,start:[3,3,3,3,2,3,5,3],now:[3,3,3,3,2,3,3,3],set:'r'},
+ {id:'S-0103',name:'Aisha R.',school:'Engineering, Year 2',cca:'Robotics Club',last:'9 Nov',count:14,streak:6,flag:0,start:[3,3,4,3,2,4,3,3],now:[5,5,5,4,4,6,4,5],set:'r'},
+ {id:'S-0104',name:'Marcus L.',school:'Engineering, Year 3',cca:'Robotics Club',last:'10 Nov',count:16,streak:7,flag:0,start:[3,3,4,3,2,3,3,3],now:[4,4,6,5,4,4,4,4],set:'r'},
+ {id:'S-0105',name:'Ryan T.',school:'Information Technology, Year 1',cca:'Robotics Club',last:'14 Oct',count:5,streak:0,flag:1,start:[3,3,4,3,3,3,4,4],now:[3,3,4,3,3,3,4,4],set:'r'},
+ {id:'S-0106',name:'Mei Lin C.',school:'Engineering, Year 3',cca:'Robotics Club',last:'10 Nov',count:13,streak:6,flag:0,start:[4,3,4,3,3,3,4,3],now:[5,4,5,4,4,4,5,4],set:'r'},
+ {id:'S-0107',name:'Jun Hao T.',school:'Information Technology, Year 2',cca:'Robotics Club',last:'7 Nov',count:10,streak:3,flag:0,start:[3,2,4,3,2,3,3,3],now:[4,3,5,4,3,3,4,4],set:'r'},
+ {id:'S-0108',name:'Kavya S.',school:'Engineering, Year 1',cca:'Robotics Club',last:'2 Nov',count:9,streak:4,flag:0,start:[4,3,3,3,3,3,4,4],now:[5,4,4,4,4,4,5,5],set:'r'},
+ {id:'S-0201',name:'Wei Ling',school:'Business, Year 2',cca:'Sandbox Advocates',last:'9 Nov',count:12,streak:5,flag:0,start:[3,3,3,3,3,3,4,3],now:[4,4,5,4,4,5,5,4],set:'g'},
+ {id:'S-0202',name:'Priya N.',school:'Nursing, Year 2',cca:'Nursing Peer Circle',last:'3 Nov',count:7,streak:2,flag:0,start:[4,3,3,3,3,3,4,4],now:[5,3,4,4,3,4,5,5],set:'g'},
+ {id:'S-0203',name:'Ling Ling',school:'Film and Media, Year 2',cca:'Media Collective',last:'11 Oct',count:4,streak:0,flag:1,start:[3,3,4,3,3,3,4,3],now:[3,3,4,3,3,3,4,3],set:'g'},
+ {id:'S-0204',name:'Zane P.',school:'Design and Environment, Year 3',cca:'Design Guild',last:'6 Nov',count:10,streak:4,flag:0,start:[3,3,4,3,2,3,3,3],now:[4,4,5,4,3,4,3,4],set:'g'}
+];
+var SV_MON={Aug:'08',Sep:'09',Oct:'10',Nov:'11'};
+function svIso(d){var m=String(d).split(' ');return '2026-'+SV_MON[m[1]]+'-'+(m[0].length<2?'0':'')+m[0];}
+var SV_EXTRA=[
+ {tag:'Competition',mode:'Text',text:'Our pitch ran over time and the judges cut us off before the business model slide.',f:'Embarrassed. Timing matters as much as content.',q:'How would you plan the pitch differently if you had only three minutes?',a:'Start with the problem and the price, and drop the history slide.'},
+ {tag:'Event',mode:'Voice',text:'I ran the registration desk alone for an hour when two helpers did not turn up. I made a quick sign so people could queue themselves.',f:'Panicked for a minute, then focused. Simple fixes beat waiting.',q:'What made you think of the sign instead of waiting for help?',a:'The queue was getting long and I had a marker and cardboard nearby.'},
+ {tag:'Project',mode:'Text',text:'We interviewed five hawkers for our project. Three said our app idea would not help them at all.',f:'Deflated at first. Hearing no early is useful.',q:'What did the three who said no tell you that you did not expect?',a:'They care more about fewer leftovers than more customers.'},
+ {tag:'Club event',mode:'Photo of handwritten page',text:'I planned the welcome tea for new members. Fewer people came than we hoped, but the ones who came stayed till the end.',f:'Disappointed by the numbers, happy with the people who came.',q:'What would you change to reach more new members next time?',a:'Post in the class chats a week earlier, not the night before.'},
+ {tag:'Placement',mode:'Voice',text:'My supervisor asked me to present our weekly numbers to the team. I was not sure about one figure, so I said I would check it.',f:'Nervous. Saying I would check was better than guessing.',q:'How did the team react when you said you would check?',a:'They were fine with it, and my supervisor said that was the right call.'},
+ {tag:'Team project',mode:'Text',text:'A teammate kept missing meetings. I messaged him privately and found out he was working nights.',f:'Annoyed at first, then sorry I had assumed. Ask before judging.',q:'What did you and your teammate agree on after you talked?',a:'He takes the tasks that can be done late at night.'},
+ {tag:'Competition',mode:'Voice',text:'We tried a risky design for the hackathon instead of the safe one. It half worked and we did not place.',f:'Disappointed with the result, glad we took the risk.',q:'Looking back, was the risk worth it? Why?',a:'Yes. We learnt more in one night than in the whole module.'},
+ {tag:'Event',mode:'Text',text:'I asked a speaker at the industry talk a question in front of everyone. My hands were shaking.',f:'Terrified, then proud. The fear passes quickly once you start.',q:'What helped you decide to put your hand up?',a:'I told myself I might not get another chance to ask her.'},
+ {tag:'Project',mode:'Photo of handwritten page',text:'We ran out of budget for materials, so we borrowed offcuts from the workshop and redesigned around them.',f:'Annoyed, then creative. Limits can make a design better.',q:'What did the redesign teach you about working with limits?',a:'The simpler version was actually stronger.'},
+ {tag:'Club event',mode:'Text',text:'I led the warm-up for the first time. Half the group was late, so I changed the plan on the spot.',f:'Flustered, then calmer. A plan is a starting point, not a script.',q:'What did you change, and how did it go?',a:'I made it shorter and paired people up as they arrived. It worked.'},
+ {tag:'Team project',mode:'Voice',text:'Our prototype failed the drop test. Instead of starting over, we tested which part broke first.',f:'Gutted for a moment, then curious. Testing finds the real problem.',q:'How did finding the weak part change your next step?',a:'We only had to redesign the joint, not the whole case.'},
+ {tag:'Competition',mode:'Text',text:'I joined a case competition with people I had never met. We split roles in the first ten minutes.',f:'Unsure at the start. Being clear about strengths saves time.',q:'How did you decide who did what so quickly?',a:'Everyone said what they were good at, and we went with that.'},
+ {tag:'Event',mode:'Photo of handwritten page',text:'I helped at the career fair booth and noticed most visitors only wanted the free snacks.',f:'Bored at first, then curious. People need a reason to stop and talk.',q:'What could the booth do to start real conversations?',a:'Ask one quick question before handing out the snacks.'},
+ {tag:'Placement',mode:'Text',text:'I found a mistake in a spreadsheet my manager had shared with the client.',f:'Worried about overstepping. Raising it privately was the right way.',q:'How did you raise it, and what happened?',a:'I told her privately first. She fixed it before the meeting.'},
+ {tag:'Project',mode:'Voice',text:'Our survey only got 12 replies in a week. We went to the canteen and asked people in person.',f:'Worried we had no data. Going in person was faster and better.',q:'What did talking face to face give you that the survey did not?',a:'Better answers, because we could ask why.'},
+ {tag:'Club event',mode:'Text',text:'We had a disagreement about the club budget. I proposed a vote with a short pros and cons list.',f:'Uncomfortable. A fair process matters as much as the result.',q:'How did the group feel about the outcome?',a:'Even the people who lost the vote said it was fair.'},
+ {tag:'Team project',mode:'Photo of handwritten page',text:'I took on the role nobody wanted: writing the report. It was harder than I expected.',f:'Tired, but I learnt how much the report holds the project together.',q:'What would you do differently the next time you take on that role?',a:'Start the outline in week one and share it early.'},
+ {tag:'Competition',mode:'Voice',text:'We reached the finals of a design challenge and had to present to real investors.',f:'Excited and a bit out of my depth. We need to know who pays.',q:'What was one question from the investors that made you think?',a:'They asked who would pay for it. We had not decided.'},
+ {tag:'Event',mode:'Text',text:'I organised a small study group before the exams. Only three people turned up, but it helped all of us.',f:'A bit let down by the turnout, but small groups can work better.',q:'What made the small group work well?',a:'We each explained one topic we were strong in.'},
+ {tag:'Placement',mode:'Voice',text:'On my first day I was given a task with no instructions. I asked two colleagues how they would approach it.',f:'Lost at first. Asking two people gave me a better way to start.',q:'What did you learn from asking two people instead of one?',a:'They had different methods, so I picked the best parts of each.'},
+ {tag:'Project',mode:'Text',text:'Our client changed the brief two weeks before the deadline. We listed what we could still deliver.',f:'Stressed, then relieved. Being honest about scope helped.',q:'How did the client react to your list?',a:'They agreed to drop one feature so we could do the rest well.'}];
+function svEntries(s){
+  var idx=SV_STUDENTS.indexOf(s),pool=SV_ENTRIES[s.set].concat(SV_EXTRA),st=idx<=0?0:(idx*3)%pool.length;
+  var base=[0,1,2].map(function(k){return pool[(st+k)%pool.length];}),older=s.flag===1?['30 Sep','16 Sep']:['26 Oct','12 Oct'];
+  return base.map(function(e,i){var c={};for(var k in e)c[k]=e[k];c.date=i===0?s.last:older[i-1];return c;});
+}
+var SV_FLAG=['Active','No entry for 3 fortnights','Resilience fell by 2'];
+var SV_ENTRIES={
+ r:[
+  {date:'9 Nov',tag:'Team project',mode:'Voice',text:'We had to rebuild our robot arm the night before the demo. At first I wanted to blame whoever did the wiring, but we split the work and got it done.',f:'Stressed at first, then relieved. Asking for help early saves time.',q:'What changed in how you handled the pressure compared with last time?',a:'I asked for help earlier instead of waiting until I was stuck.'},
+  {date:'26 Oct',tag:'Competition',mode:'Text',text:'We placed fourth. I was disappointed, but talking with the team afterwards made it easier to see what we could try next.',f:'Disappointed, but it showed me what to test earlier.',q:'What is one thing you would do differently before the next competition?',a:'Test the parts we are unsure about two weeks earlier.'},
+  {date:'12 Oct',tag:'Club event',mode:'Photo of handwritten page',text:'Talked to a visiting alumnus after the sharing session. He gave me his contact and I messaged him the same day.',f:'Nervous, then glad I followed up. Small steps open doors.',q:'What made you decide to follow up straight away?',a:'I did not want to lose the chance while I still remembered the conversation.'}],
+ g:[
+  {date:'9 Nov',tag:'Placement',mode:'Text',text:'Our group had a disagreement about who should lead the final presentation. I suggested we try both ideas in a short run-through.',f:'Tense at first. Trying both ideas ended the argument.',q:'What helped the group agree in the end?',a:'Seeing both versions out loud made the choice obvious.'},
+  {date:'27 Oct',tag:'Event',mode:'Voice',text:'I volunteered at the open house and ended up explaining our CCA to a lot of visitors. I was nervous at first.',f:'Nervous, then comfortable. Talking gets easier with practice.',q:'When did you start to feel more comfortable?',a:'After the second group, when I stopped reading from my notes.'},
+  {date:'13 Oct',tag:'Project',mode:'Text',text:'Our first plan did not work, so we changed the schedule and moved the testing earlier.',f:'Frustrated, then pleased we adapted quickly.',q:'How did you decide what to change first?',a:'We listed what would hurt most if it failed.'}]
+};
+var SV_GROUPS=[
+ {name:'Robotics Club',school:'Engineering',advisor:'Advisor 1',n:24,active:'19 of 24',low:'Opportunity Spotting'},
+ {name:'Design Guild',school:'Design and Environment',advisor:'Advisor 2',n:18,active:'15 of 18',low:'Resilience'},
+ {name:'Sandbox Advocates',school:'Business',advisor:'Advisor 3',n:22,active:'20 of 22',low:'Calculated Risk-Taking'},
+ {name:'Nursing Peer Circle',school:'Health Sciences',advisor:'Advisor 4',n:20,active:'14 of 20',low:'Networking'},
+ {name:'Hackathon Crew',school:'Information Technology',advisor:'Advisor 5',n:26,active:'21 of 26',low:'Goal Orientation'},
+ {name:'Media Collective',school:'Film and Media',advisor:'Advisor 6',n:15,active:'12 of 15',low:'Opportunity Spotting'},
+ {name:'Maker Space',school:'Engineering',advisor:'Advisor 7',n:19,active:'16 of 19',low:'Collaboration'},
+ {name:'Not in a CCA group',school:'Various',advisor:'Unassigned',n:31,active:'17 of 31',low:'Networking'}];
+/* ---------- Staff views inside the app (phone) ---------- */
+var svRole='advisor', svTabName='overview', svSel=null, svLastFile=null, svRange='This semester';
+var svAudit=[
+ {when:'10 Nov, 3:12 pm',who:'Sandbox team',scope:'All groups',rows:'1,980',how:'Attached to email'},
+ {when:'6 Nov, 11:40 am',who:'Advisor 3',scope:'Sandbox Advocates',rows:'152',how:'Attached to email'},
+ {when:'30 Oct, 9:05 am',who:'Advisor 1',scope:'Robotics Club',rows:'131',how:'Saved to phone'}];
+function svRows(){return svRole==='advisor'?SV_STUDENTS.filter(function(s){return s.cca==='Robotics Club';}):SV_STUDENTS;}
+function svChip(flag){return '<span style="display:inline-block;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:600;white-space:nowrap;background:'+(flag?'#FBE9D8':'#E8F3EA')+';color:'+(flag?'#7A3B00':'#1B4A22')+'">'+SV_FLAG[flag]+'</span>';}
+function svCard(inner,extra){return '<div class="card" style="margin-bottom:12px;'+(extra||'')+'">'+inner+'</div>';}
+function svWho(){
+  var today='2026-11-21';
+  return svRole==='advisor'
+   ?{title:'Robotics Club',sub:'24 students in your group',scope:'Robotics Club only',label:'CCA advisor',rows:168,file:'robotics-club_'+today+'.csv',exportScope:'Robotics Club · 24 students',total:24}
+   :{title:'All groups',sub:'300 students · 31 groups',scope:'Everyone in the pilot',label:'Sandbox team',rows:2104,file:'all-groups_'+today+'.csv',exportScope:'All groups · 300 students',total:300};
+}
+function svHeader(title,sub){
+  var w=svWho();
+  return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span class="small" style="letter-spacing:1.2px;text-transform:uppercase">NP Reflect · Staff</span><span style="padding:3px 10px;border-radius:10px;background:var(--accent);color:#fff;font-size:11px;font-weight:600">'+w.label+'</span></div>'+
+   '<h1 style="margin:0;font-size:24px">'+title+'</h1><div class="small" style="font-size:13px;margin:2px 0 10px">'+sub+'</div>'+
+   '<div style="display:flex;gap:8px;align-items:center;background:var(--card-alt);border-radius:10px;padding:8px 12px;font-size:12px;margin-bottom:14px"><span aria-hidden="true">🔒</span><span>You can see: <b>'+w.scope+'</b></span></div>';
+}
+function renderStaff(){
+  var b=svTabName==='export'?svExportHTML():(svTabName==='student'?svStudentHTML():(svTabName==='students'?svStudentsHTML():svOverviewHTML()));
+  document.getElementById('svBody').innerHTML=b;
+  document.querySelectorAll('#svNav button').forEach(function(x){x.classList.toggle('on',x.dataset.t===(svTabName==='student'?'students':svTabName));});
+  document.getElementById('svScreen').scrollTop=0;
+  var cl=document.getElementById('currentLabel');if(cl)cl.textContent='Staff · '+({overview:'Overview',students:'Students',student:'Student profile',export:'Export'})[svTabName];
+}
+function svTab(t){svTabName=t;svCloseSheet();renderStaff();}
+function svOpen(i){svSel=svRows()[i];svTabName='student';renderStaff();}
+function svOverviewHTML(){
+  var adv=svRole==='advisor',w=svWho();
+  var gs=adv?[3.1,2.8,3.4,3.2,2.6,2.9,3.5,3.3]:[3.0,2.9,3.3,3.1,2.7,3.0,3.4,3.2];
+  var gn=adv?[4.0,3.5,4.4,3.9,3.1,3.6,4.2,4.1]:[3.8,3.4,4.1,3.8,3.3,3.5,4.0,3.9];
+  var hi=0,lo=0,gi=0,i;
+  for(i=1;i<8;i++){if(gn[i]>gn[hi])hi=i;if(gn[i]<gn[lo])lo=i;if(gn[i]-gs[i]>gn[gi]-gs[gi])gi=i;}
+  var kp=adv?[['Active this fortnight','19/24'],['Reflections','168'],['Need a check-in','2'],['Typical streak','4']]
+            :[['Active this fortnight','241/300'],['Reflections','2,104'],['Need a check-in','9'],['No CCA group','31']];
+  var h=svHeader(w.title,w.sub+' · this semester');
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">';
+  kp.forEach(function(k,j){h+='<div class="card" style="padding:12px"><div class="small" style="font-size:11px">'+k[0]+'</div><div style="font-size:22px;font-weight:700;color:'+(j===2?'#8A4B00':'var(--accent)')+'">'+k[1]+'</div></div>';});
+  h+='</div>';
+  h+=svCard('<h3 style="margin:0 0 8px;font-size:15px">What stands out</h3><div style="font-size:13px;display:flex;flex-direction:column;gap:6px"><div><b style="color:#1F6B2A">Strongest:</b> '+SV_TR[hi]+' ('+gn[hi].toFixed(1)+')</div><div><b style="color:#8A4B00">Weakest:</b> '+SV_TR[lo]+' ('+gn[lo].toFixed(1)+')</div><div><b style="color:var(--accent)">Biggest gain:</b> '+SV_TR[gi]+' (up '+(gn[gi]-gs[gi]).toFixed(1)+')</div></div>');
+  var bars='<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px"><h3 style="margin:0;font-size:15px">'+(adv?'Group':'Pilot')+' average by skill</h3></div><div class="small" style="display:flex;gap:12px;margin-bottom:6px"><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--orange);margin-right:4px"></span>Start</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--green);margin-right:4px"></span>Now</span><span>Scale 1 to 7</span></div>';
+  SV_TR.forEach(function(n,k){
+    var tag=k===hi?' <b style="color:#1F6B2A;font-size:11px">HIGHEST</b>':(k===lo?' <b style="color:#8A4B00;font-size:11px">LOWEST</b>':'');
+    bars+='<div style="margin:8px 0"><div style="font-size:12px;display:flex;justify-content:space-between"><span>'+n+tag+'</span><span class="small">'+gn[k].toFixed(1)+'</span></div><div style="display:flex;flex-direction:column;gap:2px;margin-top:3px"><span style="height:6px;border-radius:3px;background:#E3DECF"><span style="display:block;height:6px;border-radius:3px;background:var(--orange);width:'+(gs[k]/7*100).toFixed(0)+'%"></span></span><span style="height:6px;border-radius:3px;background:#E3DECF"><span style="display:block;height:6px;border-radius:3px;background:var(--green);width:'+(gn[k]/7*100).toFixed(0)+'%"></span></span></div></div>';
+  });
+  h+=svCard(bars);
+  var fv=adv?[18,21,24,19,22,20]:[230,255,270,262,280,241],fl=['Aug','Aug','Sep','Sep','Oct','Oct'],fm=Math.max.apply(null,fv);
+  var ch='<h3 style="margin:0 0 8px;font-size:15px">Reflections per fortnight</h3><div style="display:flex;align-items:flex-end;gap:8px;height:80px">';
+  fv.forEach(function(v){ch+='<div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;gap:2px"><span class="small" style="font-size:10px">'+v+'</span><div style="width:100%;border-radius:4px 4px 0 0;background:var(--accent);height:'+Math.round(v/fm*58)+'px"></div></div>';});
+  ch+='</div><div style="display:flex;gap:8px;margin-top:4px">';fl.forEach(function(l){ch+='<div class="small" style="flex:1;text-align:center;font-size:10px">'+l+'</div>';});
+  h+=svCard(ch+'</div>');
+  if(!adv){
+    var g='<h3 style="margin:0 0 4px;font-size:15px">Groups</h3><div class="small" style="margin-bottom:4px">8 of 31 shown</div>';
+    SV_GROUPS.forEach(function(x){g+='<div style="display:flex;justify-content:space-between;gap:8px;padding:9px 0;border-top:1px solid var(--border);font-size:13px"><div><b>'+x.name+'</b><div class="small">'+x.advisor+' · lowest: '+x.low+'</div></div><div style="text-align:right;white-space:nowrap"><b>'+x.active+'</b><div class="small">active</div></div></div>';});
+    h+=svCard(g);
+  }
+  h+='<button class="btn-primary" onclick="svTab(\'students\')">See students</button>';
+  return h;
+}
+function svStudentsHTML(){
+  var adv=svRole==='advisor',w=svWho(),rows=svRows();
+  var h=svHeader(adv?'Your students':'All students','Showing '+rows.length+' of '+w.total+' · tap a name to open');
+  var l='';
+  rows.forEach(function(s,k){l+='<button onclick="svOpen('+k+')" style="display:flex;width:100%;text-align:left;justify-content:space-between;align-items:center;gap:8px;padding:12px 0;border:none;border-top:'+(k?'1px solid var(--border)':'none')+';background:none"><div style="min-width:0"><div style="font-size:15px;font-weight:600;color:var(--accent)">'+s.name+'</div><div class="small">'+(adv?s.school:s.cca)+' · last '+s.last+' · '+s.count+' entries</div></div>'+svChip(s.flag)+'</button>';});
+  h+=svCard(l,'padding:4px 14px');
+  h+='<div class="small" style="text-align:center">Opening a student\'s profile is recorded in the audit log.</div>';
+  return h;
+}
+function svStudentHTML(){
+  var s=svSel||svRows()[0];
+  var web=radarSVG([{values:s.start,color:ORANGE,fillOp:.12,dash:true},{values:s.now,color:GREEN,fillOp:.22,dash:false}],310,'Growth web for '+s.name);
+  var h='<div class="topbar" style="margin-bottom:8px"><a class="backbtn" onclick="svTab(\'students\')" aria-label="Back">←</a><span class="small">Students</span></div>';
+  h+='<h1 style="margin:0;font-size:24px">'+s.name+'</h1><div class="small" style="font-size:13px;margin:2px 0 8px">'+s.school+' · '+s.cca+'</div>';
+  h+='<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">'+svChip(s.flag)+'<span class="small">'+s.count+' entries · '+s.streak+'-fortnight streak</span></div>';
+  h+=svCard('<h3 style="margin:0 0 2px;font-size:15px">Growth profile</h3><div class="small" style="display:flex;gap:12px;margin:4px 0"><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--orange);margin-right:4px"></span>Start</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--green);margin-right:4px"></span>Now</span></div><div style="display:flex;justify-content:center">'+web+'</div>');
+  var e='<h3 style="margin:0 0 2px;font-size:15px">Recent reflections</h3><div class="small">Visible to this student\'s advisor and Sandbox only.</div>';
+  svEntries(s).forEach(function(x){
+    e+='<div style="padding:12px 0 4px;border-top:1px solid var(--border);margin-top:10px"><div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px"><span class="small">'+x.date+'</span><span style="padding:2px 8px;border-radius:10px;background:var(--card-alt);font-size:11px;font-weight:600">'+x.tag+'</span><span style="padding:2px 8px;border-radius:10px;background:var(--card-alt);font-size:11px">'+x.mode+'</span></div><div style="font-size:13px;line-height:1.55">'+x.text+'</div><div style="margin-top:8px;padding:8px 10px;background:var(--bg-app);border-radius:10px;font-size:12px;line-height:1.5"><b>AI asked:</b> '+x.q+'<br><b>Answer:</b> '+x.a+'</div></div>';
+  });
+  h+=svCard(e);
+  h+='<div class="small" style="text-align:center">This view was recorded in the audit log.</div>';
+  return h;
+}
+function svExportHTML(){
+  var w=svWho();
+  var h=svHeader('Export data','Download a CSV file for your scope');
+  var sel='width:100%;min-height:44px;padding:8px 12px;border:1px solid #D8D3C6;border-radius:10px;font-size:14px;background:#fff';
+  var f='<div class="small" style="font-weight:700;margin-bottom:4px">Scope (set by your role)</div><div style="padding:10px 12px;background:var(--card-alt);border-radius:10px;font-size:14px;font-weight:600;margin-bottom:12px">'+w.exportScope+'</div>'+
+   '<label for="svRange" class="small" style="display:block;font-weight:700;margin-bottom:4px">Date range</label><select id="svRange" onchange="svRange=this.value" style="'+sel+';margin-bottom:12px">'+['This semester','Last 3 months','Whole pilot so far'].map(function(o){return '<option'+(o===svRange?' selected':'')+'>'+o+'</option>';}).join('')+'</select>'+
+   '<div class="small" style="font-weight:700;margin-bottom:4px">What the file contains</div><div style="font-size:13px;line-height:1.55;margin-bottom:4px">One row per reflection: student number, name, CCA, date, what happened, the AI question and answer, and the 8 E-Bar ratings.</div><div style="font-size:12px;color:var(--gold-text);background:#FFF4E0;border-radius:8px;padding:6px 10px;margin-bottom:14px">Whether names are included, or student number only, is for NP to decide.</div>'+
+   '<button class="btn-primary" onclick="svExport()">Export '+w.rows.toLocaleString('en-US')+' rows</button><div class="small" style="text-align:center;margin-top:6px">CSV · opens in Excel</div>';
+  h+=svCard(f);
+  var au='<h3 style="margin:0 0 6px;font-size:15px">Recent exports</h3><div class="small" style="margin-bottom:4px">Every export is recorded: who, when, scope and where it went.</div>';
+  svAudit.forEach(function(a){au+='<div style="display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-top:1px solid var(--border);font-size:12px"><div><b>'+a.who+'</b><div class="small">'+a.when+' · '+a.scope+'</div></div><div style="text-align:right;white-space:nowrap">'+a.rows+' rows<div class="small">'+a.how+'</div></div></div>';});
+  h+=svCard(au);
+  h+=svCard('<h3 style="margin:0 0 6px;font-size:15px">Rules for every export</h3><div style="font-size:12px;line-height:1.55;display:flex;flex-direction:column;gap:6px"><div>Advisors can export only their own group; Sandbox can export everyone. The server checks this each time.</div><div>Delete the file when you are done with it.</div></div>');
+  return h;
+}
+var SV_COURSE={'Engineering':'Mechatronics','Business':'Business Studies','Design and Environment':'Architecture','Film and Media':'Film, Sound and Video','Information Technology':'Information Technology','Nursing':'Nursing','Health Sciences':'Health Sciences'};
+var SV_FELT=['Stressed at first, then relieved. I learnt that asking early saves time.','Disappointed, but it showed me what to test earlier.','Nervous, then glad I followed up. Small steps open doors.','Frustrated at first. Hearing both ideas helped me listen better.','Shy at the start, more confident by the end.','Proud that the plan worked.'];
+var SV_ROLE=['Member','Lead','Member'];
+var SV_TIME=['21:14','18:40','12:05'];
+function svBuildCsv(){
+  var rows=[];
+  svRows().forEach(function(s){svEntries(s).forEach(function(e,i){rows.push({s:s,e:e,i:i});});});
+  rows.sort(function(a,b){if(a.s.cca!==b.s.cca)return a.s.cca<b.s.cca?-1:1;if(a.s.id!==b.s.id)return a.s.id<b.s.id?-1:1;return a.i-b.i;});
+  var head=['student_id','name','school','course','year','cca_group','reflection_id','created_at','event_date','activity_tag','role_tag','input_mode','what_happened','felt_and_learned','followup_question','followup_answer'];
+  SV_TR.forEach(function(t){head.push('ebar_'+t.toLowerCase().replace(/[^a-z]+/g,'_'));});
+  head.push('ebar_scale_version');
+  var lines=[head.join(',')];
+  rows.forEach(function(r){
+    var sp=String(r.s.school).split(', '),sch=sp[0],yr=sp[1]?sp[1].replace('Year ',''):'';
+    var ev=svIso(r.e.date),k=r.i,f=(2-k)/2;
+    var c=[r.s.id,r.s.name,sch,SV_COURSE[sch]||'',yr,r.s.cca,r.s.id+'-R'+(r.i+1),ev+' '+SV_TIME[k%3],ev,r.e.tag,SV_ROLE[(k+r.s.count)%3],r.e.mode,r.e.text,(r.e.f||''),r.e.q,r.e.a];
+    r.s.now.forEach(function(v,t){c.push(Math.round(r.s.start[t]+(v-r.s.start[t])*f));});
+    c.push('v1');
+    lines.push(c.map(svCsv).join(','));
+  });
+  return {blob:new Blob(['﻿'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}),n:rows.length};
+}
+function svExport(){
+  var w=svWho(),r=svBuildCsv();svLastFile={blob:r.blob,name:w.file,n:r.n};
+  var opt=function(fn,icon,title,sub){return '<button onclick="'+fn+'" style="display:flex;width:100%;gap:14px;align-items:center;text-align:left;padding:16px;min-height:64px;border:1px solid var(--border);border-radius:14px;background:#fff;color:var(--ink);margin-bottom:10px"><span style="font-size:24px;width:32px;text-align:center" aria-hidden="true">'+icon+'</span><span style="flex:1"><b style="font-size:16px;color:var(--ink)">'+title+'</b><br><span style="font-size:13px;color:var(--muted)">'+sub+'</span></span><span aria-hidden="true" style="color:var(--faint);font-size:18px">›</span></button>';};
+  var s='<div style="width:40px;height:4px;border-radius:2px;background:var(--dot);margin:0 auto 14px"></div>'+
+   '<h1 style="margin:0 0 2px;font-size:20px;color:var(--ink)">Your file is ready</h1><div class="small" style="margin-bottom:16px">'+w.file+' · '+w.rows.toLocaleString('en-US')+' rows</div>'+
+   opt("svSend('save')",'📱','Save to phone','Keep the file in your phone\'s Files')+
+   opt("svSend('email')",'✉️','Attach to email','Opens your email app with the file attached')+
+   '<button class="link" style="border:none;background:none;width:100%;padding:10px;min-height:44px" onclick="svCloseSheet()">Cancel</button>';
+  document.getElementById('svSheet').innerHTML=s;
+  document.getElementById('svSheet').classList.add('open');document.getElementById('svScrim').classList.add('open');
+}
+function svCloseSheet(){var a=document.getElementById('svSheet'),b=document.getElementById('svScrim');if(a)a.classList.remove('open');if(b)b.classList.remove('open');}
+function svToast(t){var el=document.getElementById('svToast');document.getElementById('svToastText').textContent=t;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(function(){el.classList.remove('show');},2800);}
+var svDL=null;
+try{if(window.claude&&typeof window.claude.use==='function'){window.claude.use('downloads').then(function(n){svDL=n;}).catch(function(){});}}catch(e){}
+function svDownload(done){
+  if(svDL){svDL.save({filename:svLastFile.name,data:svLastFile.blob}).then(function(){done(true);}).catch(function(){done(false);});return;}
+  var url=URL.createObjectURL(svLastFile.blob),a=document.createElement('a');a.href=url;a.download=svLastFile.name;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);done(true);
+}
+function svLog(how){var w=svWho();svAudit.unshift({when:'Just now',who:svRole==='advisor'?'You (advisor)':'You (Sandbox)',scope:svRole==='advisor'?'Robotics Club':'All groups',rows:w.rows.toLocaleString('en-US'),how:how});}
+function svSend(how){
+  if(!svLastFile)return;
+  svCloseSheet();
+  if(how==='email'){
+    var file=null;try{file=new File([svLastFile.blob],svLastFile.name,{type:'text/csv'});}catch(e){}
+    if(file&&navigator.canShare&&navigator.canShare({files:[file]})){
+      navigator.share({files:[file],title:svLastFile.name}).then(function(){svLog('Attached to email');renderStaff();}).catch(function(){});
+      return;
     }
+    svLog('Attached to email');renderStaff();svToast('On a phone, your email app opens here with the file attached');return;
   }
+  svDownload(function(ok){if(ok){svLog('Saved to phone');renderStaff();svToast('Saved to your phone');}else svToast('File not saved');});
+}
 
-  // ---------- Home: personal / school mode ----------
-  function setHomeMode(mode, btn) {
-    document.querySelectorAll('#homeModeSeg button').forEach(function(b) { b.classList.remove('active'); });
-    btn.classList.add('active');
-    document.getElementById('homePersonalCard').style.display = (mode === 'personal') ? 'block' : 'none';
-    document.getElementById('homeSchoolCard').style.display = (mode === 'school') ? 'block' : 'none';
-  }
+function svCsv(v){v=String(v==null?'':v);if(/^[=+\-@]/.test(v))v="'"+v;return '"'+v.replace(/"/g,'""')+'"';}
+function toggleView(v){
+  document.getElementById('studentStage').style.display=v==='student'?'flex':'none';
+  document.getElementById('staffStage').style.display=v==='student'?'none':'flex';
+  document.getElementById('viewStudentBtn').classList.toggle('active',v==='student');
+  document.getElementById('viewAdvisorBtn').classList.toggle('active',v==='advisor');
+  document.getElementById('viewSandboxBtn').classList.toggle('active',v==='sandbox');
+  var st=document.getElementById('svToast');if(st)st.classList.remove('show');
+  if(v!=='student'){svRole=v;svTabName='overview';svSel=null;svCloseSheet();renderStaff();window.scrollTo(0,0);}
+  else{var a=document.querySelector('.screen.active');var cl=document.getElementById('currentLabel');if(a&&cl&&a.dataset.label)cl.textContent=a.dataset.label;}
+}
 
-  // ---------- Reflect: input mode (text/voice/photo) ----------
-  function setInputMode(mode, btnEl) {
-    document.querySelectorAll('#modeSeg button').forEach(function(b) { b.classList.remove('active'); });
-    var btn = btnEl || Array.prototype.find.call(document.querySelectorAll('#modeSeg button'), function(b){
-      return b.textContent.toLowerCase().indexOf(mode) === 0;
-    });
-    if (btn) btn.classList.add('active');
-    document.querySelectorAll('.mm-panel').forEach(function(p) { p.classList.remove('active'); });
-    document.getElementById('panel-' + mode).classList.add('active');
-    document.getElementById('promptModeWrap').style.display = (mode === 'text') ? 'block' : 'none';
-  }
-
-  // ---------- Reflect: guided / free write ----------
-  function setPromptMode(mode, btn) {
-    document.querySelectorAll('#promptSeg button').forEach(function(b) { b.classList.remove('active'); });
-    btn.classList.add('active');
-    document.getElementById('guidedFields').style.display = (mode === 'guided') ? 'block' : 'none';
-    document.getElementById('freeField').style.display = (mode === 'free') ? 'block' : 'none';
-  }
-
-  // ---------- Voice recording (mock) ----------
-  var recording = false, recSeconds = 0, recTimer = null;
-  function toggleRecording() {
-    var btn = document.getElementById('recBtn');
-    var status = document.getElementById('recStatus');
-    var transcript = document.getElementById('recTranscript');
-    recording = !recording;
-    if (recording) {
-      btn.classList.add('recording');
-      recSeconds = 0;
-      transcript.style.display = 'none';
-      recTimer = setInterval(function() {
-        recSeconds++;
-        var m = Math.floor(recSeconds / 60), s = recSeconds % 60;
-        status.textContent = 'Recording… ' + m + ':' + (s < 10 ? '0' : '') + s;
-      }, 1000);
-      status.textContent = 'Recording… 0:00';
-    } else {
-      btn.classList.remove('recording');
-      clearInterval(recTimer);
-      status.textContent = 'Tap to record again, or continue';
-      transcript.style.display = 'block';
-      transcript.textContent = '"Pitched our idea to the panel today — I froze for a bit when they pushed back on the pricing model, but I recovered and answered it directly…" (auto-transcribed)';
-    }
-  }
-
-  // ---------- Photo upload (real FileReader preview) ----------
-  function handlePhoto(evt) {
-    var file = evt.target.files[0];
-    if (!file) return;
-    var reader = new FileReader();
-    reader.onload = function(e) {
-      var img = document.getElementById('photoPreview');
-      img.src = e.target.result;
-      document.getElementById('photoPlaceholder').style.display = 'none';
-      document.getElementById('photoResult').style.display = 'block';
-    };
-    reader.readAsDataURL(file);
-  }
-
-  // ---------- Toast + finish ----------
-  function showToast(text) {
-    var t = document.getElementById('toast');
-    document.getElementById('toastText').textContent = text;
-    t.classList.add('show');
-    setTimeout(function() { t.classList.remove('show'); }, 1800);
-  }
-  function finishReflection() {
-    showScreen('home');
-    setTimeout(function() { showToast('Reflection saved'); }, 200);
-  }
-
-  // ---------- Sandbox / Advisor data table ----------
-  var sampleRows = [
-    { name: 'Wei Ling',  school: 'Business (Marketing)',     cca: 'Sandbox Advocates', date: '2026-09-02', activity: 'Pitch competition',   mode: 'school',   traits: 'Resilience 5 · Innovation 6' },
-    { name: 'Farid',     school: 'Engineering',              cca: 'Robotics Club',     date: '2026-09-05', activity: 'Team project setback', mode: 'personal', traits: 'Resilience 6 · Collaboration 4' },
-    { name: 'Priya',     school: 'Nursing',                  cca: '—',                 date: '2026-09-08', activity: 'Clinical placement',  mode: 'personal', traits: 'Resourcefulness 5 · Goals 5' },
-    { name: 'Marcus',    school: 'Design & Environment',     cca: 'Design Guild',      date: '2026-09-10', activity: 'Portfolio review',    mode: 'school',   traits: 'Innovation 7 · Opportunity 5' },
-    { name: 'Aisha',     school: 'Business (Entrepreneurship)', cca: 'Sandbox Advocates', date: '2026-09-11', activity: 'Small business launch', mode: 'personal', traits: 'Risk-taking 6 · Networking 5' },
-    { name: 'Ryan',      school: 'Information Technology',   cca: '—',                 date: '2026-09-13', activity: 'Hackathon',           mode: 'school',   traits: 'Innovation 6 · Resourcefulness 6' },
-    { name: 'Ling Ling', school: 'Humanities',                cca: '—',                 date: '2026-09-14', activity: 'Volunteer event',     mode: 'personal', traits: 'Collaboration 6 · Resilience 4' },
-    { name: 'Darius',    school: 'Engineering',              cca: 'Robotics Club',     date: '2026-09-15', activity: 'Competition loss',    mode: 'school',   traits: 'Resilience 3 · Goals 4' }
-  ];
-  var currentScope = 'all';
-
-  function renderDataTable() {
-    var rows = (currentScope === 'all') ? sampleRows : sampleRows.filter(function(r) { return r.cca === 'Robotics Club'; });
-    var body = document.getElementById('dataTableBody');
-    body.innerHTML = '';
-    rows.forEach(function(r) {
-      var tr = document.createElement('tr');
-      tr.innerHTML = '<td>' + r.name + '</td><td>' + r.school + '</td><td>' + r.cca + '</td><td>' + r.date + '</td><td>' + r.activity +
-        '</td><td><span class="badge ' + r.mode + '">' + (r.mode === 'personal' ? 'Personal' : 'School') + '</span></td><td>' + r.traits + '</td>';
-      body.appendChild(tr);
-    });
-  }
-  function setDataScope(scope, btn) {
-    currentScope = scope;
-    document.querySelectorAll('#scopeSeg button').forEach(function(b) { b.classList.remove('active'); });
-    btn.classList.add('active');
-    renderDataTable();
-  }
-  function exportCSV() {
-    var rows = (currentScope === 'all') ? sampleRows : sampleRows.filter(function(r) { return r.cca === 'Robotics Club'; });
-    var header = ['Student', 'School', 'CCA', 'Date', 'Activity', 'Mode', 'Key traits'];
-    var lines = [header.join(',')];
-    rows.forEach(function(r) {
-      lines.push([r.name, r.school, r.cca, r.date, r.activity, r.mode, '"' + r.traits + '"'].join(','));
-    });
-    var csv = lines.join('\n');
-    var blob = new Blob([csv], { type: 'text/csv' });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = 'np_reflect_export_' + currentScope + '.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
-
-  renderDataTable();
+hydrate(); renderStaff(); tourShow(); syncAgree();
 </script>
-
 </body>
 </html>
